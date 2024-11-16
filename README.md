@@ -81,20 +81,30 @@ CyberShop es una aplicación web de e-commerce intencionalmente vulnerable, dise
 
 ### Método Automatizado (Recomendado para Ubuntu)
 
-Este método instalará automáticamente todas las dependencias y desplegará la aplicación:
+Este método instalará automáticamente todas las dependencias y desplegará la aplicación. Hay dos modos de instalación disponibles:
 
-1. Descargar el script de instalación:
+#### Modo Evaluación (Por defecto)
+Este modo es para realizar pruebas y evaluaciones iniciales, **no incluye la guía de vulnerabilidades**:
 ```bash
 wget https://raw.githubusercontent.com/roozea/CyberShop/feature/vulnerable-app/install.sh
-```
-
-2. Ejecutar el script:
-```bash
 chmod +x install.sh
 sudo ./install.sh
 ```
 
-¡Eso es todo! El script instalará todas las dependencias necesarias y desplegará la aplicación automáticamente.
+#### Modo Revisión (Con Guía)
+Este modo es para después de la evaluación, **incluye la guía detallada de vulnerabilidades**:
+```bash
+wget https://raw.githubusercontent.com/roozea/CyberShop/feature/vulnerable-app/install.sh
+chmod +x install.sh
+sudo ./install.sh --with-guide
+```
+
+La guía de vulnerabilidades (VULNERABILITIES.md) en el modo revisión incluye:
+- Descripción detallada de cada vulnerabilidad
+- Pasos de reproducción
+- Payloads de ejemplo
+- Criterios de evaluación
+- Impacto esperado
 
 ### Método Manual
 
