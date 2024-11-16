@@ -99,12 +99,18 @@ chmod +x install.sh
 sudo ./install.sh --with-guide
 ```
 
-La guía de vulnerabilidades (VULNERABILITIES.md) en el modo revisión incluye:
+La documentación detallada de vulnerabilidades está disponible en GitHub Pages:
+- [Guía de Vulnerabilidades](https://roozea.github.io/CyberShop)
+- [Criterios de Evaluación](https://roozea.github.io/CyberShop/criterios/puntuacion)
+- [Guía de Evaluación](https://roozea.github.io/CyberShop/evaluacion/guia)
+
+La documentación incluye:
 - Descripción detallada de cada vulnerabilidad
 - Pasos de reproducción
 - Payloads de ejemplo
 - Criterios de evaluación
 - Impacto esperado
+- Sistema de puntuación
 
 ### Método Manual
 
