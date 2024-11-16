@@ -1,6 +1,62 @@
 # CyberShop - Laboratorio de Vulnerabilidades Web
 
-Un laboratorio de práctica para evaluar habilidades en seguridad web, simulando una tienda en línea con vulnerabilidades comunes.
+Un laboratorio de práctica para evaluar habilidades en seguridad web, simulando una tienda en línea con vulnerabilidades comunes basadas en OWASP Top 10.
+
+## 🎯 Características Principales
+
+### Funcionalidades de E-commerce
+- Catálogo de productos con imágenes
+- Sistema de búsqueda y filtros
+- Carrito de compras
+- Lista de deseos
+- Comparación de productos
+- Sistema de reseñas y calificaciones
+- Historial de pedidos
+- Chat de soporte en vivo
+- Sistema de cupones
+- Seguimiento de envíos
+
+### Vulnerabilidades Implementadas (OWASP Top 10)
+
+1. **Broken Authentication**
+   - Gestión incorrecta de sesiones
+   - Tokens débiles
+   - Sesiones que no expiran
+
+2. **Sensitive Data Exposure**
+   - Contraseñas transmitidas sin cifrar
+   - Información sensible en respuestas HTTP
+   - Almacenamiento inseguro de datos
+
+3. **Injection (SQL)**
+   - Parámetros de búsqueda no sanitizados
+   - Inyecciones en campos de administración
+   - Manipulación de IDs de productos
+
+4. **Cross-Site Scripting (XSS)**
+   - Comentarios de usuarios sin filtrar
+   - Reseñas con scripts maliciosos
+   - Chat de soporte vulnerable
+
+5. **Insecure Deserialization**
+   - Manipulación de datos del carrito
+   - Cookies vulnerables
+   - Objetos JSON no validados
+
+6. **Security Misconfiguration**
+   - APIs internas expuestas
+   - Sin límites de intentos de login
+   - Configuraciones por defecto
+
+7. **Broken Access Control**
+   - Acceso a información de otros usuarios
+   - Bypass de permisos de administrador
+   - Manipulación de IDs
+
+8. **File Upload Vulnerabilities**
+   - Subida de archivos maliciosos
+   - Bypass de validación de tipos
+   - Ejecución de código remoto
 
 ## 🚀 Inicio Rápido
 
@@ -66,6 +122,10 @@ make install
 CyberShop/
 ├── backend/         # API y lógica de negocio
 ├── frontend/        # Interfaz de usuario
+│   ├── src/
+│   │   ├── components/  # Componentes React
+│   │   ├── pages/      # Páginas principales
+│   │   └── App.js      # Configuración de rutas
 ├── docker/          # Configuración de Docker
 ├── docs/           # Documentación
 └── Makefile        # Comandos de automatización
@@ -77,6 +137,17 @@ CyberShop/
 - `make stop`: Detiene todos los servicios
 - `make clean`: Limpia contenedores y volúmenes
 - `make logs`: Muestra logs de los servicios
+
+### Despliegue en Producción
+
+1. Frontend (Netlify):
+   - URL: https://zingy-panda-a0d606.netlify.app
+   - Despliegue automático desde la rama `feature/vulnerable-app`
+
+2. Backend:
+   - Configurar variables de entorno en producción
+   - Asegurar conexión a base de datos PostgreSQL
+   - Configurar CORS según dominio de frontend
 
 ## 📝 Licencia
 
