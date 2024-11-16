@@ -1,0 +1,6 @@
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+- jekyll-remote-theme
+title: CyberShop - Laboratorio de Vulnerabilidades
+description: Guía detallada de vulnerabilidades y evaluación para el laboratorio CyberShop
+show_downloads: false
