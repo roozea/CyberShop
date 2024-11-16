@@ -79,38 +79,61 @@ CyberShop es una aplicación web de e-commerce intencionalmente vulnerable, dise
 
 ## 📦 Instalación
 
+### Método Automatizado (Recomendado para Ubuntu)
+
+Este método instalará automáticamente todas las dependencias y desplegará la aplicación:
+
+1. Descargar el script de instalación:
+```bash
+wget https://raw.githubusercontent.com/roozea/CyberShop/feature/vulnerable-app/install.sh
+```
+
+2. Ejecutar el script:
+```bash
+chmod +x install.sh
+sudo ./install.sh
+```
+
+¡Eso es todo! El script instalará todas las dependencias necesarias y desplegará la aplicación automáticamente.
+
+### Método Manual
+
 1. Clonar el repositorio:
 ```bash
 git clone https://github.com/roozea/CyberShop.git
 cd CyberShop
 ```
 
-2. Configurar variables de entorno:
+2. Instalar la aplicación (esto configurará el entorno y desplegará todo):
 ```bash
-cp backend/.env.example backend/.env
+make install
 ```
 
-3. Construir y levantar los contenedores:
+### Comandos Adicionales
+
 ```bash
-make build
+make stop     # Detener la aplicación
+make clean    # Limpiar contenedores y volúmenes
+make dev      # Iniciar en modo desarrollo
 ```
 
-## 🚀 Despliegue
+## 🌐 Despliegue en la Nube (AWS/GCP/Azure)
 
-### Iniciar la aplicación
+Para desplegar en un servidor Ubuntu en la nube:
+
+1. Conéctate a tu servidor:
 ```bash
-make run
+ssh usuario@tu-servidor
 ```
 
-### Detener la aplicación
+2. Descarga y ejecuta el script de instalación:
 ```bash
-make stop
+wget https://raw.githubusercontent.com/roozea/CyberShop/feature/vulnerable-app/install.sh
+chmod +x install.sh
+sudo ./install.sh
 ```
 
-### Limpiar contenedores y volúmenes
-```bash
-make clean
-```
+⚠️ **Importante**: Asegúrate de configurar los grupos de seguridad/firewall para permitir el tráfico en los puertos 3000 (frontend) y 8000 (backend).
 
 ## 🎮 Uso
 
@@ -170,7 +193,6 @@ make shell    # Acceder al shell del contenedor backend
 Si encuentras bugs (no relacionados con las vulnerabilidades intencionales) o tienes sugerencias para mejorar el laboratorio, por favor abre un issue o envía un pull request.
 
 ## 📜 Licencia
-
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
