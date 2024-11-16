@@ -6,19 +6,52 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Procesar argumentos
+# Función para mostrar el menú de instalación
+show_menu() {
+    clear
+    echo -e "${GREEN}=== CyberShop Vulnerable Lab - Menú de Instalación ===${NC}"
+    echo -e "${YELLOW}1) Instalación Sin Guía (Pre-evaluación)${NC}"
+    echo -e "${YELLOW}2) Instalación Con Guía (Post-evaluación)${NC}"
+    echo -e "${YELLOW}3) Salir${NC}"
+    echo
+    read -p "Seleccione una opción (1-3): " choice
+}
+
+# Procesar modo de instalación
 WITH_GUIDE=false
-for arg in "$@"
-do
-    case $arg in
-        --with-guide)
+
+# Mostrar menú y procesar selección
+while true; do
+    if [ "$1" = "--with-guide" ]; then
         WITH_GUIDE=true
-        shift
-        ;;
-    esac
+        break
+    elif [ "$1" = "--no-guide" ]; then
+        WITH_GUIDE=false
+        break
+    elif [ -z "$1" ]; then
+        show_menu
+        case $choice in
+            1)
+                WITH_GUIDE=false
+                break
+                ;;
+            2)
+                WITH_GUIDE=true
+                break
+                ;;
+            3)
+                echo -e "${YELLOW}Saliendo...${NC}"
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}Opción inválida${NC}"
+                sleep 2
+                ;;
+        esac
+    fi
 done
 
-# Mostrar modo de instalación
+# Mostrar modo de instalación seleccionado
 if [ "$WITH_GUIDE" = true ]; then
     echo -e "${GREEN}🚀 Iniciando instalación de CyberShop Vulnerable Lab (Modo: Con Guía)...${NC}"
 else
