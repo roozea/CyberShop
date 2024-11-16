@@ -6,7 +6,24 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${GREEN}🚀 Iniciando instalación de CyberShop Vulnerable Lab...${NC}"
+# Procesar argumentos
+WITH_GUIDE=false
+for arg in "$@"
+do
+    case $arg in
+        --with-guide)
+        WITH_GUIDE=true
+        shift
+        ;;
+    esac
+done
+
+# Mostrar modo de instalación
+if [ "$WITH_GUIDE" = true ]; then
+    echo -e "${GREEN}🚀 Iniciando instalación de CyberShop Vulnerable Lab (Modo: Con Guía)...${NC}"
+else
+    echo -e "${GREEN}🚀 Iniciando instalación de CyberShop Vulnerable Lab (Modo: Evaluación)...${NC}"
+fi
 
 # Verificar si se está ejecutando como root
 if [ "$EUID" -ne 0 ]; then
@@ -57,6 +74,12 @@ else
     git checkout feature/vulnerable-app
 fi
 
+# Eliminar guía si no se solicitó
+if [ "$WITH_GUIDE" = false ]; then
+    echo -e "${YELLOW}🔒 Modo evaluación: Eliminando guía de vulnerabilidades...${NC}"
+    rm -f VULNERABILITIES.md
+fi
+
 # Configurar permisos
 echo -e "${YELLOW}🔒 Configurando permisos...${NC}"
 chown -R $SUDO_USER:$SUDO_USER .
@@ -75,6 +98,13 @@ echo -e "${YELLOW}📝 La aplicación está disponible en:${NC}"
 echo -e "   Frontend: http://localhost:3000"
 echo -e "   Backend API: http://localhost:8000"
 echo -e "   API Docs: http://localhost:8000/docs"
+
+if [ "$WITH_GUIDE" = true ]; then
+    echo -e "${YELLOW}📚 La guía de vulnerabilidades está disponible en: VULNERABILITIES.md${NC}"
+else
+    echo -e "${YELLOW}📝 Modo evaluación: La guía de vulnerabilidades no está incluida${NC}"
+fi
+
 echo -e "${RED}⚠️  ADVERTENCIA: Esta aplicación es intencionalmente vulnerable.${NC}"
 echo -e "${RED}⚠️  NO USAR EN PRODUCCIÓN${NC}"
 
@@ -84,3 +114,8 @@ echo -e "   - make help     : Ver todos los comandos disponibles"
 echo -e "   - make stop     : Detener la aplicación"
 echo -e "   - make clean    : Limpiar contenedores y volúmenes"
 echo -e "   - make dev      : Iniciar en modo desarrollo"
+
+# Mostrar información sobre modos de instalación
+echo -e "\n${YELLOW}📌 Modos de instalación:${NC}"
+echo -e "   - ./install.sh          : Modo evaluación (sin guía)"
+echo -e "   - ./install.sh --with-guide : Modo revisión (con guía)"
