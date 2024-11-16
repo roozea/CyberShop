@@ -5,65 +5,78 @@ Un laboratorio de práctica para evaluar habilidades en seguridad web, simulando
 ## 🎯 Características Principales
 
 ### Funcionalidades de E-commerce
-- Catálogo de productos con imágenes
-- Sistema de búsqueda y filtros
-- Carrito de compras
-- Lista de deseos
-- Comparación de productos
-- Sistema de reseñas y calificaciones
-- Historial de pedidos
-- Chat de soporte en vivo
-- Sistema de cupones
-- Seguimiento de envíos
+- Catálogo de productos con imágenes y descripciones detalladas
+- Sistema de búsqueda avanzado con filtros y ordenamiento
+- Carrito de compras con gestión de cantidades
+- Lista de deseos personalizada
+- Comparador de productos con características
+- Sistema de reseñas y calificaciones con multimedia
+- Historial detallado de pedidos y seguimiento
+- Chat de soporte en vivo con archivos adjuntos
+- Sistema de cupones y descuentos
+- Seguimiento de envíos en tiempo real
+- Panel de administración completo
+- Sistema de pagos con múltiples métodos
 
 ### Vulnerabilidades Implementadas (OWASP Top 10)
 
 1. **Broken Authentication**
    - Gestión incorrecta de sesiones
-   - Tokens débiles
+   - Tokens débiles y predecibles
    - Sesiones que no expiran
+   - Bypass de autenticación en múltiples endpoints
 
 2. **Sensitive Data Exposure**
    - Contraseñas transmitidas sin cifrar
    - Información sensible en respuestas HTTP
    - Almacenamiento inseguro de datos
+   - Exposición de tokens y claves en logs
 
 3. **Injection (SQL)**
    - Parámetros de búsqueda no sanitizados
    - Inyecciones en campos de administración
    - Manipulación de IDs de productos
+   - Inyección en sistema de reseñas
 
 4. **Cross-Site Scripting (XSS)**
    - Comentarios de usuarios sin filtrar
    - Reseñas con scripts maliciosos
    - Chat de soporte vulnerable
+   - Campos de perfil sin sanitizar
 
 5. **Insecure Deserialization**
    - Manipulación de datos del carrito
    - Cookies vulnerables
    - Objetos JSON no validados
+   - Deserialización en listas de deseos
 
 6. **Security Misconfiguration**
    - APIs internas expuestas
    - Sin límites de intentos de login
    - Configuraciones por defecto
+   - Headers de seguridad ausentes
+   - Servicios de desarrollo expuestos
 
 7. **Broken Access Control**
    - Acceso a información de otros usuarios
    - Bypass de permisos de administrador
-   - Manipulación de IDs
+   - Manipulación de IDs en múltiples endpoints
+   - Control de acceso horizontal en reseñas
+   - Acceso no autorizado a chats de soporte
+   - Manipulación de estados de pago
 
 8. **File Upload Vulnerabilities**
    - Subida de archivos maliciosos
    - Bypass de validación de tipos
    - Ejecución de código remoto
+   - Manipulación de metadatos
 
 ## 🚀 Inicio Rápido
 
 ### Requisitos Previos
 
-- Docker
-- Docker Compose
+- Docker (versión 20.10 o superior)
+- Docker Compose (versión 2.0 o superior)
 - Make
 - Git
 
@@ -93,9 +106,10 @@ La documentación detallada de vulnerabilidades está disponible en GitHub Pages
 
 La documentación incluye:
 - Descripción detallada de cada vulnerabilidad
-- Pasos de reproducción
-- Criterios de evaluación
-- Sistema de puntuación
+- Pasos de reproducción con ejemplos
+- Payloads de ejemplo para cada vulnerabilidad
+- Criterios de evaluación y puntuación
+- Guías de mitigación
 
 ### Método Manual
 
@@ -113,6 +127,7 @@ make install
 - Frontend: http://localhost:3000
 - Backend: http://localhost:8000
 - Documentación API: http://localhost:8000/docs
+- Panel Admin: http://localhost:3000/admin
 
 ## 🛠️ Desarrollo
 
@@ -121,13 +136,21 @@ make install
 ```
 CyberShop/
 ├── backend/         # API y lógica de negocio
+│   ├── app/        # Código fuente
+│   │   ├── models/     # Modelos de datos
+│   │   ├── routes/     # Endpoints API
+│   │   └── utils/      # Utilidades
 ├── frontend/        # Interfaz de usuario
 │   ├── src/
 │   │   ├── components/  # Componentes React
 │   │   ├── pages/      # Páginas principales
+│   │   ├── services/   # Servicios API
 │   │   └── App.js      # Configuración de rutas
 ├── docker/          # Configuración de Docker
-├── docs/           # Documentación
+├── docs/           # Documentación detallada
+│   ├── vulnerabilidades/  # Guías por vulnerabilidad
+│   ├── criterios/        # Criterios de evaluación
+│   └── evaluacion/       # Guías de evaluación
 └── Makefile        # Comandos de automatización
 ```
 
@@ -137,17 +160,26 @@ CyberShop/
 - `make stop`: Detiene todos los servicios
 - `make clean`: Limpia contenedores y volúmenes
 - `make logs`: Muestra logs de los servicios
+- `make test`: Ejecuta pruebas automatizadas
+- `make reset-db`: Reinicia la base de datos
 
 ### Despliegue en Producción
 
 1. Frontend (Netlify):
    - URL: https://zingy-panda-a0d606.netlify.app
    - Despliegue automático desde la rama `feature/vulnerable-app`
+   - Variables de entorno requeridas:
+     - `REACT_APP_API_URL`: URL del backend
+     - `REACT_APP_ENVIRONMENT`: "production"
 
 2. Backend:
    - Configurar variables de entorno en producción
    - Asegurar conexión a base de datos PostgreSQL
    - Configurar CORS según dominio de frontend
+   - Variables de entorno requeridas:
+     - `DATABASE_URL`: URL de conexión PostgreSQL
+     - `JWT_SECRET`: Clave secreta para tokens
+     - `CORS_ORIGINS`: Dominios permitidos
 
 ## 📝 Licencia
 
