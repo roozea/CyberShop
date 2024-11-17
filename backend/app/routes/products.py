@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from app.models import Product, Comment, User
-from app.database import SessionLocal
+from app.utils.database import SessionLocal
 from typing import List
 import json
 import os
