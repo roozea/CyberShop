@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -57,7 +57,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
-def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
+async def login(credentials: LoginCredentials = Body(...), db: Session = Depends(get_db)):
     # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
     user = db.query(User).filter(
         User.email == credentials.email,
