@@ -1,7 +1,7 @@
 import time
 import psycopg2
 from sqlalchemy import create_engine
-from app.utils.database import Base
+from app.database import Base
 from app.models import User, Product, Review, Comment, Cart, Order, PaymentMethod, Payment
 
 def wait_for_db():
