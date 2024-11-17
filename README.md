@@ -143,7 +143,16 @@ CyberShop/
 ├── frontend/        # Interfaz de usuario
 │   ├── src/
 │   │   ├── components/  # Componentes React
+│   │   │   ├── Navbar.js       # Barra de navegación
+│   │   │   ├── ProductCard.js  # Tarjeta de producto
+│   │   │   ├── Reviews.js      # Sistema de reseñas
+│   │   │   ├── WishList.js     # Lista de deseos
+│   │   │   └── ProductFilters.js # Filtros de búsqueda
 │   │   ├── pages/      # Páginas principales
+│   │   │   ├── Home.js         # Página principal
+│   │   │   ├── Login.js        # Inicio de sesión
+│   │   │   ├── Register.js     # Registro de usuario
+│   │   │   └── Cart.js         # Carrito de compras
 │   │   ├── services/   # Servicios API
 │   │   └── App.js      # Configuración de rutas
 ├── docker/          # Configuración de Docker
@@ -168,6 +177,11 @@ CyberShop/
 1. Frontend (Netlify):
    - URL: https://zingy-panda-a0d606.netlify.app
    - Despliegue automático desde la rama `feature/vulnerable-app`
+   - Características implementadas:
+     - Catálogo de productos con imágenes de Unsplash
+     - Sistema de búsqueda y filtrado por categorías
+     - Banner promocional dinámico
+     - Diseño responsive con Chakra UI
    - Variables de entorno requeridas:
      - `REACT_APP_API_URL`: URL del backend
      - `REACT_APP_ENVIRONMENT`: "production"
