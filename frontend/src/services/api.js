@@ -3,7 +3,10 @@ import { API_URL } from "../config";
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true
+  withCredentials: false, // Cambiado a false para evitar problemas con CORS
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 api.interceptors.request.use((config) => {
@@ -14,42 +17,85 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const login = async (credentials) => {
-  const response = await api.post("/auth/login", credentials);
-  if (response.data.access_token) {
-    localStorage.setItem("token", response.data.access_token);
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error);
+    return Promise.reject(error);
   }
-  return response.data;
+);
+
+export const login = async (credentials) => {
+  try {
+    const response = await api.post("/auth/login", credentials);
+    if (response.data.access_token) {
+      localStorage.setItem("token", response.data.access_token);
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
 };
 
 export const register = async (userData) => {
-  const response = await api.post("/auth/register", userData);
-  return response.data;
+  try {
+    const response = await api.post("/auth/register", userData);
+    return response.data;
+  } catch (error) {
+    console.error('Register error:', error);
+    throw error;
+  }
 };
 
 export const getProducts = async () => {
-  const response = await api.get("/products/");
-  return response.data;
+  try {
+    const response = await api.get("/products/");
+    return response.data;
+  } catch (error) {
+    console.error('Get products error:', error);
+    throw error;
+  }
 };
 
 export const searchProducts = async (query) => {
-  const response = await api.get(`/products/search?query=${query}`);
-  return response.data;
+  try {
+    const response = await api.get(`/products/search?query=${query}`);
+    return response.data;
+  } catch (error) {
+    console.error('Search products error:', error);
+    throw error;
+  }
 };
 
 export const addToCart = async (productData) => {
-  const response = await api.post("/cart/add", productData);
-  return response.data;
+  try {
+    const response = await api.post("/cart/add", productData);
+    return response.data;
+  } catch (error) {
+    console.error('Add to cart error:', error);
+    throw error;
+  }
 };
 
 export const getCart = async () => {
-  const response = await api.get("/cart");
-  return response.data;
+  try {
+    const response = await api.get("/cart");
+    return response.data;
+  } catch (error) {
+    console.error('Get cart error:', error);
+    throw error;
+  }
 };
 
 export const addComment = async (productId, commentData) => {
-  const response = await api.post(`/products/${productId}/comments`, commentData);
-  return response.data;
+  try {
+    const response = await api.post(`/products/${productId}/comments`, commentData);
+    return response.data;
+  } catch (error) {
+    console.error('Add comment error:', error);
+    throw error;
+  }
 };
 
 export default api;
