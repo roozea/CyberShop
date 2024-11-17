@@ -1,16 +1,24 @@
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from .auth import router as auth_router
-from .cart import router as cart_router
-from .user_panel import router as user_panel_router
-from .admin import router as admin_router
-from .file_upload import router as file_upload_router
-from .mobile_api import router as mobile_api_router
-from .products import router as products_router
-from .middleware import VulnerableAuthMiddleware
-from .database import engine
-from . import models
+from fastapi.responses import JSONResponse
 import logging
+import sys
+import os
+
+# Agregar el directorio actual al path de Python
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Importar routers
+from app.auth import router as auth_router
+from app.products import router as products_router
+from app.cart import router as cart_router
+from app.user_panel import router as user_panel_router
+from app.admin import router as admin_router
+from app.file_upload import router as file_upload_router
+from app.mobile_api import router as mobile_api_router
+from app.middleware import VulnerableAuthMiddleware
+from app.database import engine
+from app import models
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
