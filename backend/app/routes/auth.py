@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -63,7 +63,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         )
 
 @router.post("/login")
-async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
+async def login(*, db: Session = Depends(get_db), credentials: LoginCredentials = Body(...)):
     try:
         logger.info(f"Intento de login para email: {credentials.email}")
         # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
