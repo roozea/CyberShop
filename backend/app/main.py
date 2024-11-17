@@ -31,6 +31,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Middleware para logging
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Request path: {request.url.path}")
+    response = await call_next(request)
+    return response
+
 # Crear tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
 

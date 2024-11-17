@@ -1,22 +1,31 @@
-from fastapi import APIRouter, Query, HTTPException, Body, Depends
+from fastapi import APIRouter, HTTPException, Query, Body, Depends
 from typing import List, Optional, Dict
-import sqlite3
-from .database import get_db
 from pydantic import BaseModel
+from datetime import datetime
 from .middleware import VulnerableAuthMiddleware
 
-router = APIRouter(dependencies=[Depends(VulnerableAuthMiddleware())])
+# Crear router con middleware de autenticación
+router = APIRouter(
+    dependencies=[Depends(VulnerableAuthMiddleware())]
+)
 
+# Modelo Pydantic para productos
 class Product(BaseModel):
     id: int
     name: str
     description: str
     price: float
-    image: str
     stock: int
+    image_url: Optional[str] = None
+    created_at: Optional[datetime] = None
 
+# Modelo para comentarios
 class Comment(BaseModel):
+    id: int
+    product_id: int
+    user_id: int
     comment: str
+    created_at: datetime
 
 # Datos de muestra
 sample_products = [
