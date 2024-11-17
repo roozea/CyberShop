@@ -13,6 +13,9 @@ COPY .env .
 # Vulnerable: Instalación sin versiones específicas y sin verificación de integridad
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Agregar el directorio actual al PYTHONPATH
+ENV PYTHONPATH=/app:$PYTHONPATH
+
 # Vulnerable: Debug mode en producción y exposición de variables de entorno
 ENV DATABASE_URL="postgresql://postgres:postgres@db:5432/cybershop"
 
