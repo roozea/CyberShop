@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import auth, products
+from .routes import api_router
+from .database import Base, engine
+
+# Crear tablas
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CyberShop API - Vulnerable by Design")
 
@@ -13,9 +17,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir routers
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(products.router, prefix="/api/products", tags=["products"])
+# Incluir todas las rutas
+app.include_router(api_router)
 
 @app.get("/")
 def read_root():
