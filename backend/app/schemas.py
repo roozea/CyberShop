@@ -18,6 +18,10 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
+class LoginCredentials(BaseModel):
+    email: str
+    password: str
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"

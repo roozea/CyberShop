@@ -1,26 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
-from app.schemas import UserCreate, Token
-from pydantic import BaseModel
-import base64
-import jwt
+from app.schemas import UserCreate, Token, LoginCredentials
 from datetime import datetime, timedelta
+import jwt
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Vulnerable: Hard-coded secret key
 SECRET_KEY = "vulnerable_secret_key_123"
 ALGORITHM = "HS256"
 
-class LoginCredentials(BaseModel):
-    email: str
-    password: str
-
-# Configurar OAuth2PasswordBearer sin tokenUrl para evitar la validación automática
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
+# Configurar OAuth2PasswordBearer
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     if not token:
@@ -31,14 +27,15 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user_id = payload.get("sub")
         if user_id is None:
             return None
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as e:
+        logger.error(f"Error decodificando token: {str(e)}")
         return None
 
     # Vulnerable: No proper error handling
     user = db.query(User).filter(User.id == user_id).first()
     return user
 
-@router.post("/register")
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     # Vulnerabilidad: Almacenamiento de contraseñas en texto plano y datos sensibles
     new_user = User(
@@ -56,11 +53,15 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         return {"id": new_user.id, "email": new_user.email}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
-@router.post("/login")
+@router.post("/login", response_model=Token)
 async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
     try:
+        logger.info(f"Intento de login para email: {credentials.email}")
         # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
         user = db.query(User).filter(
             User.email == credentials.email,
@@ -68,7 +69,11 @@ async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
         ).first()
 
         if not user:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            logger.warning(f"Credenciales inválidas para email: {credentials.email}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
 
         # Create JWT token with vulnerabilities
         token_data = {
@@ -78,7 +83,11 @@ async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
             "exp": datetime.utcnow() + timedelta(days=30)  # Vulnerable: Expiración larga
         }
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
-
+        logger.info(f"Login exitoso para email: {credentials.email}")
         return {"access_token": token, "token_type": "bearer"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error en login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
