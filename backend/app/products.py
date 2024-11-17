@@ -10,9 +10,9 @@ import json
 
 logger = logging.getLogger(__name__)
 
-# Crear router con prefijo /api/products
+# Crear router con prefijo /products (sin /api/ ya que se agrega en main.py)
 router = APIRouter(
-    prefix="/api/products",
+    prefix="/products",
     tags=["products"]
 )
 
