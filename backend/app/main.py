@@ -43,15 +43,20 @@ async def log_requests(request: Request, call_next):
 models.Base.metadata.create_all(bind=engine)
 
 # Incluir routers con prefijos corregidos
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(products_router, prefix="/api/products", tags=["products"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(cart_router, prefix="/api/cart", tags=["cart"])
 app.include_router(user_panel_router, prefix="/api/user", tags=["user"])
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
 app.include_router(file_upload_router, prefix="/api/upload", tags=["upload"])
 app.include_router(mobile_api_router, prefix="/api/mobile", tags=["mobile"])
 
-# Endpoint de prueba para verificar que la API está funcionando
 @app.get("/")
-async def root():
+def root():
     return {"message": "CyberShop API - Vulnerable by design"}
+
+# Manejador de errores 404
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, exc: HTTPException):
+    logger.error(f"404 Not Found: {request.url.path}")
+    return {"detail": f"Ruta no encontrada: {request.url.path}", "path": request.url.path}
