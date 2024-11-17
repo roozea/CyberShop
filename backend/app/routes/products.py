@@ -5,9 +5,9 @@ from typing import List
 import json
 import os
 
-router = APIRouter(prefix="/api/products", tags=["products"])
+router = APIRouter(tags=["products"])  # Removed duplicate prefix
 
-@router.get("")  # Changed from /api/products to ""
+@router.get("")
 async def get_products():
     db = SessionLocal()
     try:
@@ -17,7 +17,7 @@ async def get_products():
     finally:
         db.close()
 
-@router.post("")  # Changed from /api/products to ""
+@router.post("")
 async def create_product(product: dict):
     db = SessionLocal()
     try:
@@ -37,7 +37,7 @@ async def create_product(product: dict):
     finally:
         db.close()
 
-@router.get("/search")  # Changed from /api/products/search to /search
+@router.get("/search")
 async def search_products(query: str):
     db = SessionLocal()
     try:
@@ -50,7 +50,7 @@ async def search_products(query: str):
     finally:
         db.close()
 
-@router.post("/{product_id}/comments")  # Changed from /api/products/{product_id}/comments to /{product_id}/comments
+@router.post("/{product_id}/comments")
 async def add_comment(product_id: int, comment_data: dict):
     db = SessionLocal()
     try:
@@ -68,7 +68,7 @@ async def add_comment(product_id: int, comment_data: dict):
     finally:
         db.close()
 
-@router.post("/upload")  # Changed from /api/upload to /upload
+@router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
         # Vulnerable: No file type validation
