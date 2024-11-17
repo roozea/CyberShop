@@ -16,7 +16,12 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+# Crear la aplicación FastAPI
+app = FastAPI(
+    title="CyberShop API",
+    description="API vulnerable para pruebas de seguridad",
+    version="1.0.0"
+)
 
 # Configurar CORS
 app.add_middleware(
@@ -37,7 +42,7 @@ async def log_requests(request: Request, call_next):
 # Crear tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
 
-# Incluir routers
+# Incluir routers con prefijos corregidos
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(products_router, prefix="/api/products", tags=["products"])
 app.include_router(cart_router, prefix="/api/cart", tags=["cart"])
@@ -45,3 +50,8 @@ app.include_router(user_panel_router, prefix="/api/user", tags=["user"])
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
 app.include_router(file_upload_router, prefix="/api/upload", tags=["upload"])
 app.include_router(mobile_api_router, prefix="/api/mobile", tags=["mobile"])
+
+# Endpoint de prueba para verificar que la API está funcionando
+@app.get("/")
+async def root():
+    return {"message": "CyberShop API - Vulnerable by design"}
