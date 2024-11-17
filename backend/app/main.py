@@ -1,11 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import auth, products, cart
-from .database import Base, engine
+from .routes import auth
 
-app = FastAPI()
+app = FastAPI(title="CyberShop API - Vulnerable by Design")
 
-# Configurar CORS - Intencionalmente permisivo para demostrar vulnerabilidades
+# Vulnerabilidad: CORS mal configurado
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,17 +15,7 @@ app.add_middleware(
 
 # Incluir routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(products.router, prefix="/api/products", tags=["products"])
-app.include_router(cart.router, prefix="/api/cart", tags=["cart"])
 
-# Crear tablas en la base de datos
-Base.metadata.create_all(bind=engine)
-
-# Manejadores de errores personalizados
-@app.exception_handler(404)
-async def not_found_handler(request, exc):
-    return {"error": "Recurso no encontrado", "path": str(request.url)}
-
-@app.exception_handler(500)
-async def server_error_handler(request, exc):
-    return {"error": "Error interno del servidor", "details": str(exc)}
+@app.get("/")
+def read_root():
+    return {"message": "Bienvenido a CyberShop API - Vulnerable by Design"}
