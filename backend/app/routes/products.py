@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
-from app.models import Product, Comment, User
-from app.utils.database import SessionLocal
-from typing import List
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Request
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from ..database import get_db
+from ..models import Product, Comment, User
+from .auth import get_current_user
+from typing import List, Optional
 import json
 import os
 
@@ -9,72 +12,81 @@ router = APIRouter()
 
 # Endpoint para listar productos
 @router.get("/")
-async def get_products():
-    db = SessionLocal()
+async def get_products(db: Session = Depends(get_db)):
     try:
-        # Vulnerable: No pagination, could lead to DOS
         products = db.query(Product).all()
-        return [{"id": p.id, "name": p.name, "description": p.description, "price": p.price} for p in products]
-    finally:
-        db.close()
+        return [{"id": p.id, "name": p.name, "description": p.description, "price": p.price, "category": p.category} for p in products]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint para crear productos
 @router.post("/")
-async def create_product(product: dict):
-    db = SessionLocal()
+async def create_product(
+    product: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     try:
         # Vulnerable: No input validation for XSS
         new_product = Product(
             name=product["name"],
             description=product["description"],  # Vulnerable: Stored XSS
-            price=product["price"],
+            price=float(product["price"]),
             category=product["category"]
         )
         db.add(new_product)
         db.commit()
+        db.refresh(new_product)
         return new_product
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-    finally:
-        db.close()
 
 # Endpoint para búsqueda de productos
 @router.get("/search")
-async def search_products(query: str):
-    db = SessionLocal()
+async def search_products(query: str, db: Session = Depends(get_db)):
     try:
         # Vulnerable: SQL Injection
-        sql = f"SELECT * FROM products WHERE name LIKE '%{query}%' OR description LIKE '%{query}%'"
-        results = db.execute(sql).fetchall()
-        return [dict(r) for r in results]
+        sql_query = text(f"SELECT * FROM products WHERE name LIKE '%{query}%' OR description LIKE '%{query}%'")
+        result = db.execute(sql_query)
+        products = [dict(r._mapping) for r in result]
+        return products
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error en la búsqueda")
-    finally:
-        db.close()
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint para comentarios en productos
 @router.post("/{product_id}/comments")
-async def add_comment(product_id: int, comment_data: dict):
-    db = SessionLocal()
+async def add_comment(
+    product_id: int,
+    comment_data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     try:
+        product = db.query(Product).filter(Product.id == product_id).first()
+        if not product:
+            raise HTTPException(status_code=404, detail="Producto no encontrado")
+
         # Vulnerable: No XSS protection in comments
         new_comment = Comment(
             product_id=product_id,
+            user_id=current_user.id,
             content=comment_data["content"]  # Vulnerable: Stored XSS
         )
         db.add(new_comment)
         db.commit()
+        db.refresh(new_comment)
         return new_comment
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-    finally:
-        db.close()
 
 # Endpoint para subida de archivos
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
     try:
         # Vulnerable: No file type validation
         # Vulnerable: No file size limit

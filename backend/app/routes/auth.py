@@ -1,38 +1,74 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.schemas import UserCreate, Token
 import base64
+import jwt
+from datetime import datetime, timedelta
 
 router = APIRouter()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+# Vulnerable: Hard-coded secret key
+SECRET_KEY = "vulnerable_secret_key_123"
+ALGORITHM = "HS256"
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        # Vulnerable: No token blacklist check
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    # Vulnerable: No proper error handling
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 
 @router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    # Vulnerabilidad: SQL Injection y almacenamiento de contraseñas en texto plano
-    query = f"""
-    INSERT INTO users (email, password, address, credit_card, is_active)
-    VALUES ('{user.email}', '{user.password}', '{user.address}', '{user.credit_card}', true)
-    RETURNING id, email;
-    """
-    result = db.execute(query).fetchone()
-    db.commit()
-    return {"id": result[0], "email": result[1]}
+    # Vulnerabilidad: Almacenamiento de contraseñas en texto plano y datos sensibles
+    new_user = User(
+        email=user.email,
+        password=user.password,  # Vulnerable: Contraseña en texto plano
+        address=user.address,
+        credit_card=user.credit_card,  # Vulnerable: Datos sensibles sin cifrar
+        is_admin=False
+    )
+
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return {"id": new_user.id, "email": new_user.email}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
 def login(credentials: dict, db: Session = Depends(get_db)):
-    # Vulnerabilidad: SQL Injection y exposición de datos sensibles
-    query = f"""
-    SELECT id, email, credit_card FROM users
-    WHERE email = '{credentials["email"]}'
-    AND password = '{credentials["password"]}'
-    """
-    result = db.execute(query).fetchone()
-    if not result:
+    # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
+    user = db.query(User).filter(
+        User.email == credentials["email"],
+        User.password == credentials["password"]  # Vulnerable: Contraseña en texto plano
+    ).first()
+
+    if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Vulnerabilidad: Token débil y exposición de datos sensibles
-    token_data = f"{result[0]}:{result[1]}:{result[2]}"
-    token = base64.b64encode(token_data.encode()).decode()
+    # Create JWT token with vulnerabilities
+    token_data = {
+        "sub": str(user.id),
+        "email": user.email,
+        "credit_card": user.credit_card,  # Vulnerable: Datos sensibles en token
+        "exp": datetime.utcnow() + timedelta(days=30)  # Vulnerable: Expiración larga
+    }
+    token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
     return {"access_token": token, "token_type": "bearer"}
