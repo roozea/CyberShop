@@ -41,43 +41,49 @@ def get_password_hash(password: str):
 
 # Vulnerable: No hay rate limiting
 def authenticate_user(email: str, password: str, db: Session):
-    # Vulnerable: SQL Injection en la consulta de autenticación
-    query = f"SELECT * FROM users WHERE email = '{email}'"
-    result = db.execute(query).first()
-    if not result:
+    try:
+        # Vulnerable: Consulta sin parámetros preparados
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if not user:
+            return False
+        if not verify_password(password, user.password):
+            return False
+        return user
+    except Exception as e:
+        print(f"Error en autenticación: {str(e)}")
         return False
-    if not verify_password(password, result.password):
-        return False
-    return result
 
 # Vulnerable: No verificación de token expirado o manipulado
 async def get_current_user(authorization: Optional[str] = Header(None), db: Session = Depends(database.get_db)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    # Vulnerable: Acepta cualquier formato de token
-    token = authorization.replace("Bearer ", "")
+    try:
+        # Vulnerable: Acepta cualquier formato de token
+        token = authorization.replace("Bearer ", "")
 
-    # Vulnerable: No verifica firma ni integridad
-    token_data = decode_token(token)
-    if not token_data:
+        # Vulnerable: No verifica firma ni integridad
+        token_data = decode_token(token)
+        if not token_data:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        # Vulnerable: Consulta sin parámetros preparados pero usando SQLAlchemy
+        user = db.query(models.User).filter(models.User.id == token_data.get('user_id')).first()
+
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+
+        # Vulnerable: Expone información sensible en el objeto de usuario
+        return {
+            "id": user.id,
+            "email": user.email,
+            "credit_card": user.credit_card,  # Vulnerable: Exposición de datos sensibles
+            "address": user.address,  # Vulnerable: Exposición de datos sensibles
+            "is_admin": user.is_admin
+        }
+    except Exception as e:
+        print(f"Error en validación de token: {str(e)}")
         raise HTTPException(status_code=401, detail="Invalid token")
-
-    # Vulnerable: SQL Injection en la consulta de usuario
-    query = f"SELECT * FROM users WHERE id = {token_data.get('user_id')}"
-    user = db.execute(query).first()
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    # Vulnerable: Expone información sensible en el objeto de usuario
-    return {
-        "id": user.id,
-        "email": user.email,
-        "credit_card": user.credit_card,  # Vulnerable: Exposición de datos sensibles
-        "address": user.address,  # Vulnerable: Exposición de datos sensibles
-        "is_admin": user.is_admin
-    }
 
 @router.post("/register")
 async def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
