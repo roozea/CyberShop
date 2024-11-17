@@ -7,7 +7,7 @@ import json
 import pickle
 import base64
 
-router = APIRouter()  # Removed duplicate prefix
+router = APIRouter()
 
 @router.post("/add")
 async def add_to_cart(
@@ -54,7 +54,7 @@ async def add_to_cart(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("")
+@router.get("/")
 async def get_cart(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
