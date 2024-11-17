@@ -48,7 +48,7 @@ app.include_router(user_panel.router, prefix="/api/user", tags=["user_panel"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(file_upload.router, prefix="/api/upload", tags=["files"])
 app.include_router(mobile_api.router, prefix="/api/v1", tags=["mobile"])
-app.include_router(products.router, prefix="/api", tags=["products"])  # Ajustado el prefijo
+app.include_router(products.router, prefix="/api/products", tags=["products"])  # Ajustado el prefijo
 
 # Vulnerable: No hay rate limiting en el login
 @app.post("/login")

@@ -46,11 +46,11 @@ sample_products = [
     }
 ]
 
-@router.get("/", response_model=List[Product])
+@router.get("/products", response_model=List[Product])
 def get_products():
     return sample_products
 
-@router.get("/search")
+@router.get("/products/search")
 def search_products(query: str = Query(...)):
     # Vulnerabilidad SQL Injection intencional
     try:
@@ -63,7 +63,7 @@ def search_products(query: str = Query(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{product_id}", response_model=Product)
+@router.get("/products/{product_id}", response_model=Product)
 def get_product(product_id: int):
     product = next((p for p in sample_products if p["id"] == product_id), None)
     if not product:
@@ -71,7 +71,7 @@ def get_product(product_id: int):
     return product
 
 # Endpoint vulnerable para comentarios de productos
-@router.post("/{product_id}/comments")
+@router.post("/products/{product_id}/comments")
 async def add_comment(
     product_id: int,
     comment_text: dict = Body(...)  # Cambiado para aceptar un diccionario simple
