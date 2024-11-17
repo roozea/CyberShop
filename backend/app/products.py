@@ -1,93 +1,98 @@
 from fastapi import APIRouter, HTTPException, Query, Body, Depends
-from typing import List, Optional, Dict
-from pydantic import BaseModel
-from datetime import datetime
+from typing import List, Optional
+from sqlalchemy.orm import Session
+from . import models, schemas
+from .database import get_db
 from .middleware import VulnerableAuthMiddleware
+from sqlalchemy import text
+import logging
 
-# Crear router con middleware de autenticación
+logger = logging.getLogger(__name__)
+
 router = APIRouter(
     dependencies=[Depends(VulnerableAuthMiddleware())]
 )
 
-# Modelo Pydantic para productos
-class Product(BaseModel):
-    id: int
-    name: str
-    description: str
-    price: float
-    stock: int
-    image_url: Optional[str] = None
-    created_at: Optional[datetime] = None
-
-# Modelo para comentarios
-class Comment(BaseModel):
-    id: int
-    product_id: int
-    user_id: int
-    comment: str
-    created_at: datetime
-
-# Datos de muestra
-sample_products = [
-    {
-        "id": 1,
-        "name": "Laptop Gaming Pro",
-        "description": "Potente laptop para gaming con RTX 4080",
-        "price": 1299.99,
-        "image": "laptop.jpg",
-        "stock": 10
-    },
-    {
-        "id": 2,
-        "name": "Smartphone X",
-        "description": "Último modelo con cámara de 108MP",
-        "price": 799.99,
-        "image": "phone.jpg",
-        "stock": 15
-    },
-    {
-        "id": 3,
-        "name": "Tablet Ultra",
-        "description": "Perfecta para productividad y entretenimiento",
-        "price": 499.99,
-        "image": "tablet.jpg",
-        "stock": 20
-    }
-]
-
-@router.get("/", response_model=List[Product])
-def get_products():
-    return sample_products
+@router.get("/", response_model=List[schemas.Product])
+def get_products(db: Session = Depends(get_db)):
+    try:
+        # Vulnerable: No paginación ni límites
+        products = db.query(models.Product).all()
+        return products
+    except Exception as e:
+        logger.error(f"Error al obtener productos: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 @router.get("/search")
-def search_products(query: str = Query(...)):
-    # Vulnerabilidad SQL Injection intencional
+def search_products(
+    query: str = Query(...),
+    db: Session = Depends(get_db)
+):
     try:
-        # Simular una consulta SQL vulnerable
-        if "'" in query:  # Simular una inyección SQL exitosa
-            return {"message": "SQL Injection detectada", "data": sample_products}
+        # Vulnerable: SQL Injection a través de consulta directa
+        sql_query = f"SELECT * FROM products WHERE name LIKE '%{query}%' OR description LIKE '%{query}%'"
+        result = db.execute(text(sql_query))
+        products = [dict(row) for row in result]
 
-        # Búsqueda normal
-        return [p for p in sample_products if query.lower() in p["name"].lower() or query.lower() in p["description"].lower()]
+        # Log vulnerable que expone la consulta SQL
+        logger.info(f"SQL Query ejecutada: {sql_query}")
+
+        return products
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error en búsqueda: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error en la búsqueda")
 
-@router.get("/{product_id}", response_model=Product)
-def get_product(product_id: int):
-    product = next((p for p in sample_products if p["id"] == product_id), None)
-    if not product:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return product
+@router.get("/{product_id}", response_model=schemas.Product)
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    try:
+        # Vulnerable: No validación de acceso
+        product = db.query(models.Product).filter(models.Product.id == product_id).first()
+        if not product:
+            raise HTTPException(status_code=404, detail="Producto no encontrado")
+        return product
+    except Exception as e:
+        logger.error(f"Error al obtener producto {product_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
-# Endpoint vulnerable para comentarios de productos
-@router.post("/{product_id}/comments")
+@router.post("/{product_id}/comments", response_model=schemas.Comment)
 async def add_comment(
     product_id: int,
-    comment_text: dict = Body(...)  # Cambiado para aceptar un diccionario simple
+    comment: schemas.CommentCreate,
+    db: Session = Depends(get_db)
 ):
-    # Vulnerabilidad XSS intencional - no se sanitiza el comentario
-    return {
-        "product_id": product_id,
-        "comment": comment_text.get("comment", ""),  # El comentario se devuelve sin sanitizar
-        "status": "Comentario agregado exitosamente"
-    }
+    try:
+        # Vulnerable: No sanitización de HTML/JavaScript
+        new_comment = models.Comment(
+            content=comment.content,
+            html_content=comment.content,  # Vulnerable: Guarda HTML sin sanitizar
+            product_id=product_id,
+            user_id=1  # Vulnerable: ID de usuario hardcodeado
+        )
+
+        db.add(new_comment)
+        db.commit()
+        db.refresh(new_comment)
+
+        # Log vulnerable que expone datos
+        logger.info(f"Nuevo comentario: {comment.content}")
+
+        return new_comment
+    except Exception as e:
+        logger.error(f"Error al agregar comentario: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al agregar comentario")
+
+# Endpoint para agregar productos (vulnerable)
+@router.post("/", response_model=schemas.Product)
+def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+    try:
+        # Vulnerable: No validación de datos ni sanitización
+        new_product = models.Product(**product.dict())
+        db.add(new_product)
+        db.commit()
+        db.refresh(new_product)
+        return new_product
+    except Exception as e:
+        logger.error(f"Error al crear producto: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al crear producto")
