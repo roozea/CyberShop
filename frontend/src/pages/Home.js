@@ -37,17 +37,30 @@ export const Home = () => {
 
   const loadProducts = async () => {
     try {
-      const response = await api.get('/products/');  // Corregido: Eliminado 'api' del path
-      setProducts(response.data);
+      setLoading(true);
+      const response = await api.get('/products/');
+      if (!response.data || response.data.length === 0) {
+        toast({
+          title: 'Advertencia',
+          description: 'No hay productos disponibles',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+        setProducts([]);
+      } else {
+        setProducts(response.data);
+      }
     } catch (error) {
       console.error('Error loading products:', error);
       toast({
         title: 'Error',
-        description: 'No se pudieron cargar los productos',
+        description: 'No se pudieron cargar los productos. Por favor, intente nuevamente.',
         status: 'error',
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
+      setProducts([]);
     } finally {
       setLoading(false);
     }
