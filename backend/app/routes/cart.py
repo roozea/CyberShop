@@ -7,7 +7,7 @@ import json
 import pickle
 import base64
 
-router = APIRouter(prefix="/api/cart")
+router = APIRouter()
 
 @router.post("/add")
 async def add_to_cart(
