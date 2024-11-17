@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { ProductCard } from '../components/ProductCard';
 import { useState, useEffect, useCallback } from 'react';
-import { getProducts, searchProducts } from '../services/api';
+import api, { getProducts, searchProducts } from '../services/api';
 
 export const Home = () => {
   const [products, setProducts] = useState([]);
