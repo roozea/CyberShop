@@ -16,125 +16,80 @@ import {
 } from '@chakra-ui/react';
 import { ProductCard } from '../components/ProductCard';
 import { ProductFilters } from '../components/ProductFilters';
-import { useState } from 'react';
-
-const mockProducts = [
-  {
-    id: 1,
-    name: 'Laptop Gaming Pro X',
-    price: 999.99,
-    image: 'https://images.unsplash.com/photo-1603302576837-37561b2e2302',
-    description: 'Potente laptop gaming con RTX 4080, 32GB RAM, 1TB SSD',
-    category: 'Laptops',
-    rating: 4.5,
-    stock: 15,
-    discount: 10
-  },
-  {
-    id: 2,
-    name: 'Smartphone Ultra 5G',
-    price: 799.99,
-    image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd',
-    description: 'Smartphone flagship con cámara 108MP, 256GB',
-    category: 'Smartphones',
-    rating: 4.8,
-    stock: 20,
-    discount: 15
-  },
-  {
-    id: 3,
-    name: 'Tablet Pro Max',
-    price: 599.99,
-    image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0',
-    description: 'Tablet profesional con M2, perfecta para creativos',
-    category: 'Tablets',
-    rating: 4.6,
-    stock: 8,
-    discount: 0
-  },
-  {
-    id: 4,
-    name: 'Smartwatch Elite',
-    price: 299.99,
-    image: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a',
-    description: 'Reloj inteligente con ECG, GPS y monitor de sueño',
-    category: 'Wearables',
-    rating: 4.7,
-    stock: 12,
-    discount: 20
-  },
-  {
-    id: 5,
-    name: 'Auriculares Pro ANC',
-    price: 249.99,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
-    description: 'Auriculares premium con cancelación de ruido',
-    category: 'Audio',
-    rating: 4.9,
-    stock: 25,
-    discount: 5
-  },
-  {
-    id: 6,
-    name: 'Cámara DSLR 4K',
-    price: 1299.99,
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32',
-    description: 'Cámara profesional para fotografía y video',
-    category: 'Cámaras',
-    rating: 4.8,
-    stock: 5,
-    discount: 0
-  },
-  {
-    id: 7,
-    name: 'Monitor Gaming 240Hz',
-    price: 449.99,
-    image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf',
-    description: 'Monitor gaming QHD con 1ms de respuesta',
-    category: 'Monitores',
-    rating: 4.6,
-    stock: 10,
-    discount: 12
-  },
-  {
-    id: 8,
-    name: 'Consola Next-Gen',
-    price: 499.99,
-    image: 'https://images.unsplash.com/photo-1486401899868-0e435ed85128',
-    description: 'Consola de última generación con ray-tracing',
-    category: 'Consolas',
-    rating: 4.9,
-    stock: 3,
-    discount: 0
-  }
-];
-
-const categories = [
-  'Todas', 'Laptops', 'Smartphones', 'Tablets', 'Wearables',
-  'Audio', 'Cámaras', 'Monitores', 'Consolas'
-];
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 export const Home = () => {
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
+  const [loading, setLoading] = useState(true);
   const toast = useToast();
 
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todas' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const categories = [
+    'Todas', 'Laptops', 'Smartphones', 'Tablets', 'Wearables',
+    'Audio', 'Cámaras', 'Monitores', 'Consolas'
+  ];
 
-  const handleAddToCart = (product) => {
-    toast({
-      title: 'Producto agregado',
-      description: `${product.name} ha sido agregado al carrito`,
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-    });
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      const response = await api.get('/api/products');
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Error loading products:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los productos',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSearch = async () => {
+    try {
+      // Vulnerable: No sanitización de la búsqueda
+      const response = await api.get(`/api/products/search?query=${searchTerm}`);
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Error searching products:', error);
+    }
+  };
+
+  const handleAddToCart = async (product) => {
+    try {
+      // Vulnerable: No validación de datos
+      await api.post('/api/cart/add', { productId: product.id, quantity: 1 });
+      toast({
+        title: 'Producto agregado',
+        description: `${product.name} ha sido agregado al carrito`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo agregar el producto al carrito',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory === 'Todas' || product.category === selectedCategory;
+    return matchesCategory;
+  });
 
   return (
     <Box>
@@ -179,8 +134,12 @@ export const Home = () => {
             placeholder="Buscar productos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             flex={1}
           />
+          <Button onClick={handleSearch} colorScheme="blue">
+            Buscar
+          </Button>
           <Select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -201,15 +160,19 @@ export const Home = () => {
             </Badge>
           </Flex>
 
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
-            {filteredProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={() => handleAddToCart(product)}
-              />
-            ))}
-          </SimpleGrid>
+          {loading ? (
+            <Text>Cargando productos...</Text>
+          ) : (
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+              {filteredProducts.map(product => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={() => handleAddToCart(product)}
+                />
+              ))}
+            </SimpleGrid>
+          )}
         </Box>
 
         {/* Categorías Destacadas */}

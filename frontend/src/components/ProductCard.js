@@ -18,6 +18,9 @@ export const ProductCard = ({ product, onAddToCart }) => {
   const bgColor = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.700', 'white');
 
+  // Vulnerable: Renderiza HTML sin sanitizar
+  const createMarkup = (html) => ({ __html: html });
+
   return (
     <Box
       maxW="sm"
@@ -29,7 +32,7 @@ export const ProductCard = ({ product, onAddToCart }) => {
     >
       <Box position="relative">
         <Image
-          src={product.image}
+          src={product.image || 'https://via.placeholder.com/300'}
           alt={product.name}
           height="200px"
           width="100%"
@@ -75,9 +78,13 @@ export const ProductCard = ({ product, onAddToCart }) => {
           </Text>
         </Flex>
 
-        <Text fontSize="sm" color="gray.600" noOfLines={2} mb={2}>
-          {product.description}
-        </Text>
+        {/* Vulnerable: XSS a través de la descripción */}
+        <Box
+          fontSize="sm"
+          color="gray.600"
+          mb={2}
+          dangerouslySetInnerHTML={createMarkup(product.description)}
+        />
 
         <Flex align="center" mb={2}>
           <Flex align="center">
@@ -85,21 +92,21 @@ export const ProductCard = ({ product, onAddToCart }) => {
               <Icon
                 key={i}
                 as={FaStar}
-                color={i < Math.floor(product.rating) ? "yellow.400" : "gray.300"}
+                color={i < Math.floor(product.rating || 0) ? "yellow.400" : "gray.300"}
                 w={3}
                 h={3}
               />
             ))}
           </Flex>
           <Text ml={1} fontSize="sm" color="gray.600">
-            ({product.rating})
+            ({product.rating || 0})
           </Text>
         </Flex>
 
         <Flex justify="space-between" align="center" mb={4}>
           <Stack spacing={0}>
             <Text fontSize="2xl" fontWeight="bold" color={textColor}>
-              ${product.price.toFixed(2)}
+              ${product.price?.toFixed(2)}
             </Text>
             {product.discount > 0 && (
               <Text
@@ -107,15 +114,15 @@ export const ProductCard = ({ product, onAddToCart }) => {
                 color="gray.500"
                 textDecoration="line-through"
               >
-                ${(product.price * (1 + product.discount/100)).toFixed(2)}
+                ${((product.price || 0) * (1 + (product.discount || 0)/100)).toFixed(2)}
               </Text>
             )}
           </Stack>
-          <Tooltip label={`${product.stock} unidades disponibles`}>
+          <Tooltip label={`${product.stock || 0} unidades disponibles`}>
             <Flex align="center">
               <Icon as={BsBoxSeam} color="gray.500" />
               <Text ml={1} fontSize="sm" color="gray.500">
-                {product.stock}
+                {product.stock || 0}
               </Text>
             </Flex>
           </Tooltip>
