@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.schemas import UserCreate, Token
+from pydantic import BaseModel
 import base64
 import jwt
 from datetime import datetime, timedelta
@@ -14,6 +15,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 # Vulnerable: Hard-coded secret key
 SECRET_KEY = "vulnerable_secret_key_123"
 ALGORITHM = "HS256"
+
+class LoginCredentials(BaseModel):
+    email: str
+    password: str
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
@@ -52,11 +57,11 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
-def login(credentials: dict, db: Session = Depends(get_db)):
+def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
     # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
     user = db.query(User).filter(
-        User.email == credentials.get('email'),
-        User.password == credentials.get('password')  # Vulnerable: Contraseña en texto plano
+        User.email == credentials.email,
+        User.password == credentials.password  # Vulnerable: Contraseña en texto plano
     ).first()
 
     if not user:
