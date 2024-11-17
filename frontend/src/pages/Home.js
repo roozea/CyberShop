@@ -1,5 +1,4 @@
 import {
-  Grid,
   Container,
   Heading,
   SimpleGrid,
@@ -8,16 +7,13 @@ import {
   Select,
   Button,
   Flex,
-  Image,
   Text,
   Badge,
-  Stack,
   useToast
 } from '@chakra-ui/react';
 import { ProductCard } from '../components/ProductCard';
-import { ProductFilters } from '../components/ProductFilters';
-import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { useState, useEffect, useCallback } from 'react';
+import { getProducts, searchProducts } from '../services/api';
 
 export const Home = () => {
   const [products, setProducts] = useState([]);
@@ -31,15 +27,11 @@ export const Home = () => {
     'Audio', 'Cámaras', 'Monitores', 'Consolas'
   ];
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get('/products/');
-      if (!response.data || response.data.length === 0) {
+      const data = await getProducts();
+      if (!data || data.length === 0) {
         toast({
           title: 'Advertencia',
           description: 'No hay productos disponibles',
@@ -49,7 +41,7 @@ export const Home = () => {
         });
         setProducts([]);
       } else {
-        setProducts(response.data);
+        setProducts(data);
       }
     } catch (error) {
       console.error('Error loading products:', error);
@@ -64,22 +56,34 @@ export const Home = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const handleSearch = async () => {
     try {
-      // Vulnerable: No sanitización de la búsqueda
-      const response = await api.get(`/products/search?query=${searchTerm}`);  // Corregido: Eliminado 'api' del path
-      setProducts(response.data);
+      setLoading(true);
+      const data = await searchProducts(searchTerm);
+      setProducts(data);
     } catch (error) {
       console.error('Error searching products:', error);
+      toast({
+        title: 'Error',
+        description: 'Error al buscar productos',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddToCart = async (product) => {
     try {
-      // Vulnerable: No validación de datos
-      await api.post('/cart/add', { productId: product.id, quantity: 1 });  // Corregido: Eliminado 'api' del path
+      await api.post('/cart/add', { productId: product.id, quantity: 1 });
       toast({
         title: 'Producto agregado',
         description: `${product.name} ha sido agregado al carrito`,
