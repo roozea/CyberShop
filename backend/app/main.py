@@ -12,7 +12,7 @@ from . import auth
 from .session import SessionManager
 from .cart import router as cart_router, CartManager
 import logging
-from . import user_panel, admin, file_upload, mobile_api
+from . import user_panel, admin, file_upload, mobile_api, products  # Agregado products
 
 # Vulnerable: Logging sin sanitización
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +47,7 @@ app.include_router(user_panel.router, prefix="/user", tags=["user_panel"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(file_upload.router, prefix="/upload", tags=["files"])
 app.include_router(mobile_api.router, prefix="/api/v1", tags=["mobile"])
+app.include_router(products.router, tags=["products"])  # Agregado router de productos
 
 # Vulnerable: No hay rate limiting en el login
 @app.post("/login")
