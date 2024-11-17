@@ -37,7 +37,7 @@ export const Home = () => {
 
   const loadProducts = async () => {
     try {
-      const response = await api.get('/api/products');
+      const response = await api.get('/products/');  // Corregido: Eliminado 'api' del path
       setProducts(response.data);
     } catch (error) {
       console.error('Error loading products:', error);
@@ -56,7 +56,7 @@ export const Home = () => {
   const handleSearch = async () => {
     try {
       // Vulnerable: No sanitización de la búsqueda
-      const response = await api.get(`/api/products/search?query=${searchTerm}`);
+      const response = await api.get(`/products/search?query=${searchTerm}`);  // Corregido: Eliminado 'api' del path
       setProducts(response.data);
     } catch (error) {
       console.error('Error searching products:', error);
@@ -66,7 +66,7 @@ export const Home = () => {
   const handleAddToCart = async (product) => {
     try {
       // Vulnerable: No validación de datos
-      await api.post('/api/cart/add', { productId: product.id, quantity: 1 });
+      await api.post('/cart/add', { productId: product.id, quantity: 1 });  // Corregido: Eliminado 'api' del path
       toast({
         title: 'Producto agregado',
         description: `${product.name} ha sido agregado al carrito`,
