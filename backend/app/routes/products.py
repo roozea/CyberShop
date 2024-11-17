@@ -14,9 +14,11 @@ router = APIRouter()
 @router.get("/")
 async def get_products(db: Session = Depends(get_db)):
     try:
+        # Vulnerable: No pagination, potential DoS
         products = db.query(Product).all()
-        return [{"id": p.id, "name": p.name, "description": p.description, "price": p.price, "category": p.category} for p in products]
+        return [{"id": p.id, "name": p.name, "description": p.description, "price": float(p.price), "category": p.category, "html_content": p.html_content, "custom_js": p.custom_js} for p in products]
     except Exception as e:
+        print(f"Error en get_products: {str(e)}")  # Debug log
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint para crear productos
