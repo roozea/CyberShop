@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -7,6 +7,7 @@ from app.schemas import UserCreate, Token, LoginCredentials
 from datetime import datetime, timedelta
 import jwt
 import logging
+from fastapi.security.utils import get_authorization_scheme_param
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -15,12 +16,15 @@ logger = logging.getLogger(__name__)
 SECRET_KEY = "vulnerable_secret_key_123"
 ALGORITHM = "HS256"
 
-# Configurar OAuth2PasswordBearer
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    if not token:
+async def get_current_user(request: Request, db: Session = Depends(get_db)):
+    authorization = request.headers.get("Authorization")
+    if not authorization:
         return None
+
+    scheme, token = get_authorization_scheme_param(authorization)
+    if not token or scheme.lower() != "bearer":
+        return None
+
     try:
         # Vulnerable: No token blacklist check
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -58,7 +62,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
             detail=str(e)
         )
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
     try:
         logger.info(f"Intento de login para email: {credentials.email}")
