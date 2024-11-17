@@ -9,7 +9,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Crear router con prefijo /api/products
 router = APIRouter(
+    prefix="/api/products",  # Agregar prefijo correcto
+    tags=["products"],
     dependencies=[Depends(VulnerableAuthMiddleware())]
 )
 

@@ -43,7 +43,7 @@ async def log_requests(request: Request, call_next):
 models.Base.metadata.create_all(bind=engine)
 
 # Incluir routers con prefijos corregidos
-app.include_router(products_router, prefix="/api/products", tags=["products"])
+app.include_router(products_router, tags=["products"])  # El prefijo ya está en el router
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(cart_router, prefix="/api/cart", tags=["cart"])
 app.include_router(user_panel_router, prefix="/api/user", tags=["user"])
