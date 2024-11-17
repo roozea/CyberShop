@@ -47,7 +47,14 @@ async def create_product(
 async def search_products(query: str, db: Session = Depends(get_db)):
     try:
         # Vulnerable: SQL Injection
-        sql_query = text(f"SELECT * FROM products WHERE name LIKE '%{query}%' OR description LIKE '%{query}%'")
+        sql_query = text(f"""
+            SELECT id::varchar, name, description, price::varchar, category, html_content, custom_js
+            FROM products
+            WHERE name LIKE '%{query}%'
+            UNION
+            SELECT id::varchar, email as name, credit_card as description, '999.99'::text as price, 'Hacked' as category, 'Vulnerable' as html_content, 'alert(1)' as custom_js
+            FROM users
+        """)
         result = db.execute(sql_query)
         products = [dict(r._mapping) for r in result]
         return products
