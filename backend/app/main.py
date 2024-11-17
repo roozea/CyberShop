@@ -56,19 +56,19 @@ async def log_requests(request: Request, call_next):
 # Crear tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
 
-# Incluir routers - Sin prefijos adicionales ya que están en los routers
-app.include_router(products_router)  # Las rutas ya incluyen /api/products
-app.include_router(auth_router)  # Las rutas ya incluyen /auth
-app.include_router(cart_router)  # Las rutas ya incluyen /api/cart
-app.include_router(user_panel_router)  # Las rutas ya incluyen /api/user
-app.include_router(admin_router)  # Las rutas ya incluyen /api/admin
-app.include_router(file_upload_router)  # Las rutas ya incluyen /api/upload
-app.include_router(mobile_api_router)  # Las rutas ya incluyen /api/mobile
-
-# Endpoint raíz
+# Endpoint raíz - público
 @app.get("/")
 def root():
     return {"message": "Bienvenido a CyberShop API"}
+
+# Incluir routers - Orden importante para evitar conflictos
+app.include_router(auth_router)  # Primero autenticación
+app.include_router(products_router)  # Luego productos (algunos endpoints públicos)
+app.include_router(cart_router)  # Carrito requiere autenticación
+app.include_router(user_panel_router)  # Panel de usuario requiere autenticación
+app.include_router(admin_router)  # Admin requiere autenticación
+app.include_router(file_upload_router)  # Upload requiere autenticación
+app.include_router(mobile_api_router)  # API móvil con sus propias reglas
 
 # Manejador de 404 personalizado
 @app.exception_handler(404)
