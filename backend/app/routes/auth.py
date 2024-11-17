@@ -61,7 +61,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         )
 
 @router.post("/login", response_model=Token)
-def login(credentials: LoginCredentials = Body(...), db: Session = Depends(get_db)):
+async def login(*, db: Session = Depends(get_db), credentials: LoginCredentials = Body(...)):
     try:
         logger.info(f"Intento de login para email: {credentials.email}")
         # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
