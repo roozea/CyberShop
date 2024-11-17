@@ -56,14 +56,14 @@ async def log_requests(request: Request, call_next):
 # Crear tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
 
-# Incluir routers - Corregir prefijos para evitar duplicación
-app.include_router(products_router, tags=["products"])  # Quitar prefix aquí ya que está en el router
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(cart_router, prefix="/cart", tags=["cart"])
-app.include_router(user_panel_router, prefix="/user", tags=["user"])
-app.include_router(admin_router, prefix="/admin", tags=["admin"])
-app.include_router(file_upload_router, prefix="/upload", tags=["upload"])
-app.include_router(mobile_api_router, prefix="/mobile", tags=["mobile"])
+# Incluir routers - Sin prefijos adicionales ya que están en los routers
+app.include_router(products_router)  # Las rutas ya incluyen /api/products
+app.include_router(auth_router)  # Las rutas ya incluyen /auth
+app.include_router(cart_router)  # Las rutas ya incluyen /api/cart
+app.include_router(user_panel_router)  # Las rutas ya incluyen /api/user
+app.include_router(admin_router)  # Las rutas ya incluyen /api/admin
+app.include_router(file_upload_router)  # Las rutas ya incluyen /api/upload
+app.include_router(mobile_api_router)  # Las rutas ya incluyen /api/mobile
 
 # Endpoint raíz
 @app.get("/")
