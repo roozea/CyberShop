@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel
 from app.models import User
 from app.database import SessionLocal
 import base64
@@ -8,40 +9,67 @@ import json
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@router.post("/register")  # Changed from /auth/register to /register
-async def register(user_data: dict):
+# Modelos Pydantic para validación
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    address: str
+    credit_card: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+@router.post("/register")
+async def register(user_data: UserRegister):
     db = SessionLocal()
     try:
-        # Vulnerable: Store password in plain text
-        new_user = User(
-            email=user_data["email"],
-            password=user_data["password"],  # Vulnerable: No password hashing
-            address=user_data["address"],
-            credit_card=user_data["credit_card"]  # Vulnerable: Storing sensitive data
-        )
-        db.add(new_user)
+        # Vulnerable: Store password in plain text and SQL Injection
+        query = f"""
+        INSERT INTO users (email, password, address, credit_card)
+        VALUES ('{user_data.email}', '{user_data.password}',
+                '{user_data.address}', '{user_data.credit_card}')
+        RETURNING id;
+        """
+        result = db.execute(query)
+        user_id = result.scalar()
         db.commit()
-        return {"message": "Usuario registrado exitosamente", "user_id": new_user.id}
+
+        # Vulnerable: Weak token generation
+        token = base64.b64encode(json.dumps({
+            "user_id": user_id,
+            "email": user_data.email
+        }).encode()).decode()
+
+        return {
+            "message": "Usuario registrado exitosamente",
+            "access_token": token,
+            "token_type": "bearer"
+        }
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
     finally:
         db.close()
 
-@router.post("/login")  # Changed from /auth/login to /login
-async def login(credentials: dict):
+@router.post("/login")
+async def login(credentials: UserLogin):
     db = SessionLocal()
     try:
-        # Vulnerable: SQL Injection through string concatenation
-        query = f"SELECT * FROM users WHERE email = '{credentials['email']}' AND password = '{credentials['password']}'"
+        # Vulnerable: SQL Injection
+        query = f"""
+        SELECT id, email FROM users
+        WHERE email = '{credentials.email}'
+        AND password = '{credentials.password}'
+        """
         result = db.execute(query)
         user = result.first()
 
         if user:
             # Vulnerable: Weak token generation
             token = base64.b64encode(json.dumps({
-                "user_id": user[0],  # Assuming id is the first column
-                "email": user[1]     # Assuming email is the second column
+                "user_id": user[0],
+                "email": user[1]
             }).encode()).decode()
             return {"access_token": token, "token_type": "bearer"}
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
