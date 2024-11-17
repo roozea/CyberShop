@@ -5,9 +5,10 @@ from typing import List
 import json
 import os
 
-router = APIRouter(tags=["products"])  # Removed duplicate prefix
+router = APIRouter()
 
-@router.get("")
+# Endpoint para listar productos
+@router.get("/")
 async def get_products():
     db = SessionLocal()
     try:
@@ -17,7 +18,8 @@ async def get_products():
     finally:
         db.close()
 
-@router.post("")
+# Endpoint para crear productos
+@router.post("/")
 async def create_product(product: dict):
     db = SessionLocal()
     try:
@@ -37,6 +39,7 @@ async def create_product(product: dict):
     finally:
         db.close()
 
+# Endpoint para búsqueda de productos
 @router.get("/search")
 async def search_products(query: str):
     db = SessionLocal()
@@ -50,6 +53,7 @@ async def search_products(query: str):
     finally:
         db.close()
 
+# Endpoint para comentarios en productos
 @router.post("/{product_id}/comments")
 async def add_comment(product_id: int, comment_data: dict):
     db = SessionLocal()
@@ -68,6 +72,7 @@ async def add_comment(product_id: int, comment_data: dict):
     finally:
         db.close()
 
+# Endpoint para subida de archivos
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
