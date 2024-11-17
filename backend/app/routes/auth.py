@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -10,7 +10,7 @@ import jwt
 from datetime import datetime, timedelta
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 # Vulnerable: Hard-coded secret key
 SECRET_KEY = "vulnerable_secret_key_123"
@@ -57,12 +57,9 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
-async def login(request: Request, db: Session = Depends(get_db)):
-    # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
+async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
     try:
-        body = await request.json()
-        credentials = LoginCredentials(**body)
-
+        # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
         user = db.query(User).filter(
             User.email == credentials.email,
             User.password == credentials.password  # Vulnerable: Contraseña en texto plano
@@ -81,5 +78,5 @@ async def login(request: Request, db: Session = Depends(get_db)):
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
         return {"access_token": token, "token_type": "bearer"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
