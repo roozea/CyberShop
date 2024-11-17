@@ -14,6 +14,7 @@ COPY ./app ./app
 COPY .env .
 COPY ./scripts/init_db.py /app/scripts/
 COPY ./scripts/seed_data.py /app/scripts/
+COPY ./scripts/init_test_data.py /app/scripts/
 
 ENV PYTHONPATH=/app
 
