@@ -1,0 +1,24 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+*   Trying 127.0.0.1:8000...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to localhost (127.0.0.1) port 8000 (#0)
+> POST /auth/login HTTP/1.1
+> Host: localhost:8000
+> User-Agent: curl/7.81.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 48
+> 
+} [48 bytes data]
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 422 Unprocessable Entity
+< date: Sun, 17 Nov 2024 09:08:26 GMT
+< server: uvicorn
+< content-length: 171
+< content-type: application/json
+< 
+{ [171 bytes data]
+100   219  100   171  100    48  48455  13601 --:--:-- --:--:-- --:--:-- 73000
+* Connection #0 to host localhost left intact
+{"detail":[{"loc":["query","email"],"msg":"field required","type":"value_error.missing"},{"loc":["query","password"],"msg":"field required","type":"value_error.missing"}]}
