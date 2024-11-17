@@ -73,15 +73,15 @@ async def get_cart(request: Request):
     # Vulnerable: Retorna datos deserializados sin validación
     return CartManager.get_cart_from_cookie(request)
 
-@router.post("/add/{product_id}")
+@router.post("/cart/add/{product_id}")
 async def add_to_cart(
     request: Request,
     response: Response,
     product_id: int,
-    quantity: int = Body(..., embed=True)
+    quantity: dict = Body(...)  # Cambiado para aceptar un diccionario simple
 ):
     current_cart = CartManager.get_cart_from_cookie(request)
-    updated_cart = CartManager.update_cart_items(current_cart, product_id, quantity)
+    updated_cart = CartManager.update_cart_items(current_cart, product_id, quantity.get("quantity", 1))
     CartManager.set_cart_cookie(response, updated_cart)
     return updated_cart
 

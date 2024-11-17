@@ -73,11 +73,11 @@ def get_product(product_id: int):
 @router.post("/products/{product_id}/comments")
 async def add_comment(
     product_id: int,
-    comment_data: Comment = Body(...)  # Especificamos que viene del body
+    comment_text: dict = Body(...)  # Cambiado para aceptar un diccionario simple
 ):
     # Vulnerabilidad XSS intencional - no se sanitiza el comentario
     return {
         "product_id": product_id,
-        "comment": comment_data.comment,  # El comentario se devuelve sin sanitizar
+        "comment": comment_text.get("comment", ""),  # El comentario se devuelve sin sanitizar
         "status": "Comentario agregado exitosamente"
     }

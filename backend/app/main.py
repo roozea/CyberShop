@@ -42,12 +42,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Incluir routers con vulnerabilidades intencionales
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(cart_router, prefix="/cart", tags=["cart"])
+app.include_router(cart_router, tags=["cart"])  # Removido prefix para usar las rutas definidas en cart.py
 app.include_router(user_panel.router, prefix="/user", tags=["user_panel"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(file_upload.router, prefix="/upload", tags=["files"])
 app.include_router(mobile_api.router, prefix="/api/v1", tags=["mobile"])
-app.include_router(products.router, tags=["products"])  # Agregado router de productos
+app.include_router(products.router, prefix="/api", tags=["products"])  # Agregado prefix /api
 
 # Vulnerable: No hay rate limiting en el login
 @app.post("/login")
