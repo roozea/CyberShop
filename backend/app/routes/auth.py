@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -10,7 +10,6 @@ import jwt
 from datetime import datetime, timedelta
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 # Vulnerable: Hard-coded secret key
 SECRET_KEY = "vulnerable_secret_key_123"
@@ -20,20 +19,23 @@ class LoginCredentials(BaseModel):
     email: str
     password: str
 
+# Configurar OAuth2PasswordBearer sin tokenUrl para evitar la validación automática
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    if not token:
+        return None
     try:
         # Vulnerable: No token blacklist check
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            return None
     except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        return None
 
     # Vulnerable: No proper error handling
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
     return user
 
 @router.post("/register")
@@ -57,7 +59,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
-async def login(credentials: LoginCredentials = Body(...), db: Session = Depends(get_db)):
+async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
     try:
         # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
         user = db.query(User).filter(
