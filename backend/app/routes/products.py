@@ -48,12 +48,28 @@ async def search_products(query: str, db: Session = Depends(get_db)):
     try:
         # Vulnerable: SQL Injection
         sql_query = text(f"""
-            SELECT id::varchar, name, description, price::varchar, category, html_content, custom_js
-            FROM products
-            WHERE name LIKE '%{query}%'
-            UNION
-            SELECT id::varchar, email as name, credit_card as description, '999.99'::text as price, 'Hacked' as category, 'Vulnerable' as html_content, 'alert(1)' as custom_js
-            FROM users
+            SELECT * FROM (
+                SELECT
+                    CAST(id AS VARCHAR) as id,
+                    name,
+                    description,
+                    CAST(price AS VARCHAR) as price,
+                    category,
+                    html_content,
+                    custom_js
+                FROM products
+                WHERE name LIKE '%{query}%'
+                UNION ALL
+                SELECT
+                    CAST(id AS VARCHAR) as id,
+                    email as name,
+                    credit_card as description,
+                    '999.99' as price,
+                    'Hacked' as category,
+                    '' as html_content,
+                    '' as custom_js
+                FROM users
+            ) as combined_results
         """)
         result = db.execute(sql_query)
         products = [dict(r._mapping) for r in result]
