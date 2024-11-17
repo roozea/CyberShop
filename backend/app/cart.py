@@ -73,7 +73,7 @@ async def get_cart(request: Request):
     # Vulnerable: Retorna datos deserializados sin validación
     return CartManager.get_cart_from_cookie(request)
 
-@router.post("/cart/add/{product_id}")
+@router.post("/add/{product_id}")
 async def add_to_cart(
     request: Request,
     response: Response,
