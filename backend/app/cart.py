@@ -68,12 +68,12 @@ class CartManager:
         except:
             return {}
 
-@router.get("/cart")
+@router.get("/")
 async def get_cart(request: Request):
     # Vulnerable: Retorna datos deserializados sin validación
     return CartManager.get_cart_from_cookie(request)
 
-@router.post("/cart/add/{product_id}")
+@router.post("/add/{product_id}")
 async def add_to_cart(
     request: Request,
     response: Response,
@@ -85,14 +85,14 @@ async def add_to_cart(
     CartManager.set_cart_cookie(response, updated_cart)
     return updated_cart
 
-@router.post("/cart/import")
+@router.post("/import")
 async def import_cart(request: Request, response: Response, import_data: str):
     # Vulnerable: Importa datos serializados sin validación
     imported_cart = CartManager.import_cart_data(import_data)
     CartManager.set_cart_cookie(response, imported_cart)
     return imported_cart
 
-@router.post("/cart/clear")
+@router.post("/clear")
 async def clear_cart(response: Response):
     CartManager.set_cart_cookie(response, {})
     return {"message": "Cart cleared"}
