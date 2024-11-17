@@ -52,11 +52,11 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
-def login(credentials: dict, db: Session = Depends(get_db)):
+def login(email: str, password: str, db: Session = Depends(get_db)):
     # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
     user = db.query(User).filter(
-        User.email == credentials["email"],
-        User.password == credentials["password"]  # Vulnerable: Contraseña en texto plano
+        User.email == email,
+        User.password == password  # Vulnerable: Contraseña en texto plano
     ).first()
 
     if not user:
