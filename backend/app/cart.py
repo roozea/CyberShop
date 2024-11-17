@@ -1,10 +1,11 @@
 import pickle
 import base64
 from typing import Optional, Dict, Any
-from fastapi import Request, Response, APIRouter, HTTPException, Body
+from fastapi import Request, Response, APIRouter, HTTPException, Body, Depends
 import json
+from .middleware import VulnerableAuthMiddleware
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(VulnerableAuthMiddleware())])
 
 class CartManager:
     @staticmethod

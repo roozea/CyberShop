@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Query, HTTPException, Body
+from fastapi import APIRouter, Query, HTTPException, Body, Depends
 from typing import List, Optional, Dict
 import sqlite3
 from .database import get_db
 from pydantic import BaseModel
+from .middleware import VulnerableAuthMiddleware
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(VulnerableAuthMiddleware())])
 
 class Product(BaseModel):
     id: int

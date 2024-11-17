@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from . import auth
 from .session import SessionManager
 from .cart import router as cart_router, CartManager
+from .middleware import VulnerableAuthMiddleware
 import logging
 from . import user_panel, admin, file_upload, mobile_api, products  # Agregado products
 
