@@ -11,9 +11,7 @@ import json
 logger = logging.getLogger(__name__)
 
 # Crear router sin prefijo ya que se agrega en main.py
-router = APIRouter(
-    tags=["products"]
-)
+router = APIRouter()
 
 async def get_current_user(authorization: Optional[str] = Header(None)):
     if not authorization:
@@ -112,7 +110,6 @@ async def add_comment(
     except Exception as e:
         logger.error(f"Error al agregar comentario: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.post("/", response_model=schemas.Product)
 async def create_product(
