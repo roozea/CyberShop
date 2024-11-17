@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Query, HTTPException
-from typing import List, Optional
+from fastapi import APIRouter, Query, HTTPException, Body
+from typing import List, Optional, Dict
 import sqlite3
 from .database import get_db
 from pydantic import BaseModel
@@ -13,6 +13,9 @@ class Product(BaseModel):
     price: float
     image: str
     stock: int
+
+class Comment(BaseModel):
+    comment: str
 
 # Datos de muestra
 sample_products = [
@@ -51,7 +54,6 @@ def search_products(query: str = Query(...)):
     # Vulnerabilidad SQL Injection intencional
     try:
         # Simular una consulta SQL vulnerable
-        # En un caso real, esto sería una consulta a la base de datos
         if "'" in query:  # Simular una inyección SQL exitosa
             return {"message": "SQL Injection detectada", "data": sample_products}
 
@@ -69,10 +71,10 @@ def get_product(product_id: int):
 
 # Endpoint vulnerable para comentarios de productos
 @router.post("/products/{product_id}/comments")
-def add_comment(product_id: int, comment: str):
+def add_comment(product_id: int, comment: Comment = Body(...)):
     # Vulnerabilidad XSS intencional - no se sanitiza el comentario
     return {
         "product_id": product_id,
-        "comment": comment,  # El comentario se devuelve sin sanitizar
+        "comment": comment.comment,  # El comentario se devuelve sin sanitizar
         "status": "Comentario agregado exitosamente"
     }
