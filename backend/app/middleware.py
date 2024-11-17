@@ -1,6 +1,7 @@
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import jwt
+import base64
+import json
 from datetime import datetime
 import logging
 
@@ -22,8 +23,9 @@ class VulnerableAuthMiddleware(HTTPBearer):
         logger.info(f"Token recibido: {token}")
 
         try:
-            # Vulnerable: No se verifica la firma del token
-            payload = jwt.decode(token, options={"verify_signature": False})
+            # Vulnerable: No hay verificación de integridad
+            decoded = base64.b64decode(token.encode()).decode()
+            payload = json.loads(decoded)
 
             # Vulnerable: No se verifica la expiración del token
             if "timestamp" in payload:
