@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
@@ -7,7 +6,6 @@ from app.schemas import UserCreate, Token, LoginCredentials
 from datetime import datetime, timedelta
 import jwt
 import logging
-from fastapi.security.utils import get_authorization_scheme_param
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -21,17 +19,17 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
     if not authorization:
         return None
 
-    scheme, token = get_authorization_scheme_param(authorization)
-    if not token or scheme.lower() != "bearer":
-        return None
-
     try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            return None
+
         # Vulnerable: No token blacklist check
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if user_id is None:
             return None
-    except jwt.PyJWTError as e:
+    except (jwt.PyJWTError, ValueError) as e:
         logger.error(f"Error decodificando token: {str(e)}")
         return None
 
@@ -63,7 +61,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         )
 
 @router.post("/login")
-async def login(*, db: Session = Depends(get_db), credentials: LoginCredentials = Body(...)):
+async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
     try:
         logger.info(f"Intento de login para email: {credentials.email}")
         # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
