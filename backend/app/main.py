@@ -58,7 +58,7 @@ def root():
 # Incluir routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(products.router, prefix="/api/products", tags=["products"])
-app.include_router(cart.router, prefix="/api/cart", tags=["cart"])
+app.include_router(cart.router, prefix="/cart", tags=["cart"])  # Remove duplicate prefix
 app.include_router(user_panel_router, prefix="/api/user", tags=["user"])
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
 app.include_router(file_upload_router, prefix="/api/upload", tags=["upload"])
@@ -70,3 +70,13 @@ async def custom_404_handler(request: Request, exc: HTTPException):
     path = request.url.path
     logger.warning(f"Ruta no encontrada: {path}")
     return JSONResponse(status_code=404, content={"detail": f"Ruta no encontrada: {path}"})
+
+# Manejador de errores 500
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc: Exception):
+    path = request.url.path
+    logger.error(f"Error interno en {path}: {str(exc)}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Error interno del servidor", "path": path}
+    )
