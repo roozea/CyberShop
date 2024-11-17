@@ -71,10 +71,13 @@ def get_product(product_id: int):
 
 # Endpoint vulnerable para comentarios de productos
 @router.post("/products/{product_id}/comments")
-def add_comment(product_id: int, comment: Comment = Body(...)):
+async def add_comment(
+    product_id: int,
+    comment_data: Comment
+):
     # Vulnerabilidad XSS intencional - no se sanitiza el comentario
     return {
         "product_id": product_id,
-        "comment": comment.comment,  # El comentario se devuelve sin sanitizar
+        "comment": comment_data.comment,  # El comentario se devuelve sin sanitizar
         "status": "Comentario agregado exitosamente"
     }

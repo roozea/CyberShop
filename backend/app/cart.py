@@ -1,7 +1,7 @@
 import pickle
 import base64
 from typing import Optional, Dict, Any
-from fastapi import Request, Response, APIRouter, HTTPException
+from fastapi import Request, Response, APIRouter, HTTPException, Body
 import json
 
 router = APIRouter()
@@ -74,7 +74,12 @@ async def get_cart(request: Request):
     return CartManager.get_cart_from_cookie(request)
 
 @router.post("/cart/add/{product_id}")
-async def add_to_cart(request: Request, response: Response, product_id: int, quantity: int):
+async def add_to_cart(
+    request: Request,
+    response: Response,
+    product_id: int,
+    quantity: int = Body(..., embed=True)
+):
     current_cart = CartManager.get_cart_from_cookie(request)
     updated_cart = CartManager.update_cart_items(current_cart, product_id, quantity)
     CartManager.set_cart_cookie(response, updated_cart)
