@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -57,23 +57,29 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
-async def login(credentials: LoginCredentials = Body(...), db: Session = Depends(get_db)):
+async def login(request: Request, db: Session = Depends(get_db)):
     # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
-    user = db.query(User).filter(
-        User.email == credentials.email,
-        User.password == credentials.password  # Vulnerable: Contraseña en texto plano
-    ).first()
+    try:
+        body = await request.json()
+        credentials = LoginCredentials(**body)
 
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        user = db.query(User).filter(
+            User.email == credentials.email,
+            User.password == credentials.password  # Vulnerable: Contraseña en texto plano
+        ).first()
 
-    # Create JWT token with vulnerabilities
-    token_data = {
-        "sub": str(user.id),
-        "email": user.email,
-        "credit_card": user.credit_card,  # Vulnerable: Datos sensibles en token
-        "exp": datetime.utcnow() + timedelta(days=30)  # Vulnerable: Expiración larga
-    }
-    token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return {"access_token": token, "token_type": "bearer"}
+        # Create JWT token with vulnerabilities
+        token_data = {
+            "sub": str(user.id),
+            "email": user.email,
+            "credit_card": user.credit_card,  # Vulnerable: Datos sensibles en token
+            "exp": datetime.utcnow() + timedelta(days=30)  # Vulnerable: Expiración larga
+        }
+        token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+
+        return {"access_token": token, "token_type": "bearer"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
