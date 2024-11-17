@@ -10,8 +10,11 @@ import json
 
 logger = logging.getLogger(__name__)
 
-# Crear router sin prefijo ya que se agrega en main.py
-router = APIRouter()
+# Crear router con prefijo /products
+router = APIRouter(
+    prefix="/products",
+    tags=["products"]
+)
 
 async def get_current_user(authorization: Optional[str] = Header(None)):
     if not authorization:
