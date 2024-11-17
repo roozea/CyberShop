@@ -11,7 +11,10 @@ import json
 logger = logging.getLogger(__name__)
 
 # Crear router con prefijo /api/products
-router = APIRouter()
+router = APIRouter(
+    prefix="/api/products",
+    tags=["products"]
+)
 
 async def get_current_user(authorization: Optional[str] = Header(None)):
     if not authorization:
@@ -23,7 +26,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
     except Exception as e:
         raise HTTPException(status_code=401, detail="Token inválido")
 
-@router.get("/api/products", response_model=List[schemas.Product])
+@router.get("/", response_model=List[schemas.Product])
 async def get_products(db: Session = Depends(get_db)):
     try:
         # Vulnerable: No verificación de autenticación
@@ -34,7 +37,7 @@ async def get_products(db: Session = Depends(get_db)):
         logger.error(f"Error al obtener productos: {str(e)}")
         raise HTTPException(status_code=500, detail="Error interno del servidor")
 
-@router.get("/api/products/search")
+@router.get("/search")
 async def search_products(
     query: str = Query(..., description="Término de búsqueda"),
     db: Session = Depends(get_db)
@@ -50,7 +53,7 @@ async def search_products(
         logger.error(f"Error en búsqueda: {str(e)}")
         raise HTTPException(status_code=500, detail="Error en la búsqueda")
 
-@router.get("/api/products/{product_id}")
+@router.get("/{product_id}")
 async def get_product(product_id: int, db: Session = Depends(get_db)):
     try:
         # Vulnerable: No sanitización de entrada
@@ -64,7 +67,7 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
         logger.error(f"Error al obtener producto: {str(e)}")
         raise HTTPException(status_code=500, detail="Error interno del servidor")
 
-@router.post("/api/products/{product_id}/comments")
+@router.post("/{product_id}/comments")
 async def add_comment(
     product_id: int,
     comment: schemas.CommentCreate,
@@ -87,7 +90,7 @@ async def add_comment(
         db.rollback()
         raise HTTPException(status_code=500, detail="Error al agregar comentario")
 
-@router.post("/api/products")
+@router.post("/")
 async def create_product(
     product: schemas.ProductCreate,
     current_user: dict = Depends(get_current_user),
