@@ -6,6 +6,7 @@ from app.schemas import UserCreate, Token, LoginCredentials
 from datetime import datetime, timedelta
 import jwt
 import logging
+import json
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -61,17 +62,27 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         )
 
 @router.post("/login")
-async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
+async def login(request: Request, db: Session = Depends(get_db)):
     try:
-        logger.info(f"Intento de login para email: {credentials.email}")
+        body = await request.json()
+        email = body.get("email")
+        password = body.get("password")
+
+        if not email or not password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email and password are required"
+            )
+
+        logger.info(f"Intento de login para email: {email}")
         # Vulnerabilidad: Consulta vulnerable a SQL injection usando ORM
         user = db.query(User).filter(
-            User.email == credentials.email,
-            User.password == credentials.password  # Vulnerable: Contraseña en texto plano
+            User.email == email,
+            User.password == password  # Vulnerable: Contraseña en texto plano
         ).first()
 
         if not user:
-            logger.warning(f"Credenciales inválidas para email: {credentials.email}")
+            logger.warning(f"Credenciales inválidas para email: {email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
@@ -85,8 +96,13 @@ async def login(credentials: LoginCredentials, db: Session = Depends(get_db)):
             "exp": datetime.utcnow() + timedelta(days=30)  # Vulnerable: Expiración larga
         }
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
-        logger.info(f"Login exitoso para email: {credentials.email}")
+        logger.info(f"Login exitoso para email: {email}")
         return {"access_token": token, "token_type": "bearer"}
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid JSON"
+        )
     except Exception as e:
         logger.error(f"Error en login: {str(e)}")
         raise HTTPException(
