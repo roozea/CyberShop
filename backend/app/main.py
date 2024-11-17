@@ -17,9 +17,9 @@ sys.path.append(current_dir)
 # Importar módulos después de configurar el path
 from app.database import engine, SessionLocal
 from app import models
-from app.auth import router as auth_router
-from app.products import router as products_router
-from app.cart import router as cart_router
+from app.routes.auth import router as auth_router
+from app.routes.products import router as products_router
+from app.routes.cart import router as cart_router
 from app.user_panel import router as user_panel_router
 from app.admin import router as admin_router
 from app.file_upload import router as file_upload_router
