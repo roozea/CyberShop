@@ -1,57 +1,49 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
 class UserBase(BaseModel):
-    email: str
+    email: EmailStr
     address: str
-    credit_card: str
+    credit_card: str  # Intencionalmente expuesto para vulnerabilidad
 
 class UserCreate(UserBase):
-    password: str
+    password: str  # Contraseña en texto plano para vulnerabilidad
 
 class User(UserBase):
     id: int
-    is_active: bool
-    created_at: datetime
+    is_active: bool = True
+    is_admin: bool = False
 
     class Config:
         orm_mode = True
 
 class ProductBase(BaseModel):
     name: str
-    description: str
+    description: str  # Permitir XSS
     price: float
     category: str
-    html_content: Optional[str] = None
 
 class ProductCreate(ProductBase):
     pass
 
-class ProductResponse(ProductBase):
+class Product(ProductBase):
     id: int
     created_at: datetime
-
-    class Config:
-        orm_mode = True
-
-class ReviewBase(BaseModel):
-    content: str
-    rating: int
-
-class ReviewCreate(ReviewBase):
-    pass
-
-class Review(ReviewBase):
-    id: int
-    product_id: int
-    created_at: datetime
+    comments: List['Comment'] = []
 
     class Config:
         orm_mode = True
 
 class CommentBase(BaseModel):
-    content: str
+    content: str  # Permitir XSS
 
 class CommentCreate(CommentBase):
     pass
@@ -59,29 +51,10 @@ class CommentCreate(CommentBase):
 class Comment(CommentBase):
     id: int
     product_id: int
+    user_id: int
     created_at: datetime
 
     class Config:
         orm_mode = True
 
-class CartBase(BaseModel):
-    product_id: int
-    quantity: int
-    serialized_data: Optional[str] = None
-
-class CartCreate(CartBase):
-    pass
-
-class CartResponse(CartBase):
-    id: int
-    user_id: int
-
-    class Config:
-        orm_mode = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    email: Optional[str] = None
+Product.update_forward_refs()
