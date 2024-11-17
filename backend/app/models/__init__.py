@@ -16,6 +16,7 @@ class User(Base):
     # Relaciones
     reviews = relationship("Review", back_populates="user")
     comments = relationship("Comment", back_populates="user")
+    orders = relationship("Order", back_populates="user")  # Agregada relación con Order
 
 class Product(Base):
     __tablename__ = "products"
@@ -73,16 +74,6 @@ class Cart(Base):
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer, default=1)
     cart_data = Column(String)  # Vulnerable: Deserialización insegura de datos del carrito
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-class Order(Base):
-    __tablename__ = "orders"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    order_data = Column(String)  # Vulnerable: Datos sin sanitizar
-    total_amount = Column(Float)
-    payment_status = Column(String)  # Vulnerable: Sin validación de estados
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class PaymentMethod(Base):
