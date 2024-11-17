@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import auth, products, cart
-from .utils.database import Base, engine
+from .database import Base, engine
 
 app = FastAPI()
 
