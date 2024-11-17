@@ -78,3 +78,21 @@ class Cart(CartBase):
 
     class Config:
         orm_mode = True
+
+class OrderBase(BaseModel):
+    cart_id: int
+    shipping_address: str
+    payment_method: str
+
+class OrderCreate(OrderBase):
+    pass
+
+class Order(OrderBase):
+    id: int
+    user_id: int
+    status: str
+    created_at: datetime
+    total_amount: float = 0.0
+
+    class Config:
+        orm_mode = True
