@@ -7,9 +7,9 @@ import json
 import pickle
 import base64
 
-router = APIRouter(prefix="/api/cart")
+router = APIRouter()
 
-@router.post("/add")
+@router.post("/cart/add")
 async def add_to_cart(
     product_id: int,
     quantity: int,
@@ -54,7 +54,7 @@ async def add_to_cart(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("")
+@router.get("/cart")
 async def get_cart(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -80,7 +80,7 @@ async def get_cart(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/{product_id}")
+@router.delete("/cart/{product_id}")
 async def remove_from_cart(
     product_id: int,
     current_user: User = Depends(get_current_user),
