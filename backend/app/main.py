@@ -58,7 +58,7 @@ def root():
 # Incluir routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(products.router, prefix="/api/products", tags=["products"])
-app.include_router(cart.router, prefix="/api", tags=["cart"])  # Corrected prefix
+app.include_router(cart.router, prefix="/api/cart", tags=["cart"])  # Corrected prefix
 app.include_router(user_panel_router, prefix="/api/user", tags=["user"])
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
 app.include_router(file_upload_router, prefix="/api/upload", tags=["upload"])
