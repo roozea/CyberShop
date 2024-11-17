@@ -1,10 +1,10 @@
-import os
-import sys
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from datetime import datetime
+import os
+import sys
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -17,9 +17,7 @@ sys.path.append(current_dir)
 # Importar módulos después de configurar el path
 from app.database import engine, SessionLocal
 from app import models
-from app.routes.auth import router as auth_router
-from app.routes.products import router as products_router
-from app.routes.cart import router as cart_router
+from app.routes import auth, products, cart
 from app.user_panel import router as user_panel_router
 from app.admin import router as admin_router
 from app.file_upload import router as file_upload_router
@@ -45,10 +43,18 @@ app.add_middleware(
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = datetime.now()
+    path = request.url.path
+    method = request.method
+
+    # Log request
+    logger.info(f"Request: {method} {path}")
+
     response = await call_next(request)
+
+    # Log response
     duration = datetime.now() - start_time
     logger.info(
-        f"Method: {request.method} Path: {request.url.path} "
+        f"Response: {method} {path} "
         f"Duration: {duration.total_seconds():.2f}s Status: {response.status_code}"
     )
     return response
@@ -61,20 +67,21 @@ models.Base.metadata.create_all(bind=engine)
 def root():
     return {"message": "Bienvenido a CyberShop API"}
 
-# Incluir routers - Orden importante para evitar conflictos
-app.include_router(auth_router)  # Primero autenticación
-app.include_router(products_router)  # Luego productos (algunos endpoints públicos)
-app.include_router(cart_router)  # Carrito requiere autenticación
-app.include_router(user_panel_router)  # Panel de usuario requiere autenticación
-app.include_router(admin_router)  # Admin requiere autenticación
-app.include_router(file_upload_router)  # Upload requiere autenticación
-app.include_router(mobile_api_router)  # API móvil con sus propias reglas
+# Incluir routers con sus prefijos específicos
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(products.router, prefix="/api/products", tags=["products"])
+app.include_router(cart.router, prefix="/api/cart", tags=["cart"])
+app.include_router(user_panel_router, prefix="/api/user", tags=["user"])
+app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
+app.include_router(file_upload_router, prefix="/api/upload", tags=["upload"])
+app.include_router(mobile_api_router, prefix="/api/mobile", tags=["mobile"])
 
 # Manejador de 404 personalizado
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, exc: HTTPException):
-    logger.warning(f"Ruta no encontrada: {request.url.path}")
+    path = request.url.path
+    logger.warning(f"Ruta no encontrada: {path}")
     return JSONResponse(
         status_code=404,
-        content={"detail": "Not Found"}
+        content={"detail": f"Ruta no encontrada: {path}"}
     )
