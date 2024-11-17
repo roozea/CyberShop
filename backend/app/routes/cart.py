@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.models import Cart, Product, User
-from app.database import get_db
-from app.auth import get_current_user
+from ..models import Cart, Product, User
+from ..database import get_db
+from ..auth import get_current_user
 from sqlalchemy.orm import Session
 import json
 import pickle
