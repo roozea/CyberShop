@@ -6,15 +6,12 @@ import {
   Button,
   Flex,
   Stack,
-  Icon,
-  Tooltip,
   useColorModeValue
 } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import { FaStar, FaShoppingCart, FaHeart } from 'react-icons/fa';
-import { BsBoxSeam } from 'react-icons/bs';
+import { FaShoppingCart } from 'react-icons/fa';
 
-export const ProductCard = ({ product, onAddToCart }) => {
+const ProductCard = ({ product }) => {
   const bgColor = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.700', 'white');
 
@@ -32,27 +29,12 @@ export const ProductCard = ({ product, onAddToCart }) => {
     >
       <Box position="relative">
         <Image
-          src={product.image || 'https://via.placeholder.com/300'}
+          src="https://via.placeholder.com/300"
           alt={product.name}
           height="200px"
           width="100%"
           objectFit="cover"
         />
-        {product.discount > 0 && (
-          <Badge
-            position="absolute"
-            top="4"
-            right="4"
-            px="2"
-            py="1"
-            colorScheme="red"
-            borderRadius="md"
-            fontSize="sm"
-            fontWeight="bold"
-          >
-            {product.discount}% OFF
-          </Badge>
-        )}
       </Box>
 
       <Box p="6">
@@ -60,11 +42,6 @@ export const ProductCard = ({ product, onAddToCart }) => {
           <Badge borderRadius="full" px="2" colorScheme="blue">
             {product.category}
           </Badge>
-          {product.stock <= 5 && (
-            <Badge borderRadius="full" px="2" colorScheme="orange" ml={2}>
-              ¡Últimas unidades!
-            </Badge>
-          )}
         </Box>
 
         <Flex justify="space-between" align="baseline" mb={2}>
@@ -86,46 +63,12 @@ export const ProductCard = ({ product, onAddToCart }) => {
           dangerouslySetInnerHTML={createMarkup(product.description)}
         />
 
-        <Flex align="center" mb={2}>
-          <Flex align="center">
-            {[...Array(5)].map((_, i) => (
-              <Icon
-                key={i}
-                as={FaStar}
-                color={i < Math.floor(product.rating || 0) ? "yellow.400" : "gray.300"}
-                w={3}
-                h={3}
-              />
-            ))}
-          </Flex>
-          <Text ml={1} fontSize="sm" color="gray.600">
-            ({product.rating || 0})
-          </Text>
-        </Flex>
-
         <Flex justify="space-between" align="center" mb={4}>
           <Stack spacing={0}>
             <Text fontSize="2xl" fontWeight="bold" color={textColor}>
               ${product.price?.toFixed(2)}
             </Text>
-            {product.discount > 0 && (
-              <Text
-                fontSize="sm"
-                color="gray.500"
-                textDecoration="line-through"
-              >
-                ${((product.price || 0) * (1 + (product.discount || 0)/100)).toFixed(2)}
-              </Text>
-            )}
           </Stack>
-          <Tooltip label={`${product.stock || 0} unidades disponibles`}>
-            <Flex align="center">
-              <Icon as={BsBoxSeam} color="gray.500" />
-              <Text ml={1} fontSize="sm" color="gray.500">
-                {product.stock || 0}
-              </Text>
-            </Flex>
-          </Tooltip>
         </Flex>
 
         <Flex justify="space-between" align="center">
@@ -137,15 +80,15 @@ export const ProductCard = ({ product, onAddToCart }) => {
           <Button
             colorScheme="blue"
             leftIcon={<FaShoppingCart />}
-            onClick={() => onAddToCart(product)}
             flex={1}
             ml={2}
           >
-            Agregar
+            Agregar al carrito
           </Button>
         </Flex>
       </Box>
     </Box>
   );
 };
+
 export default ProductCard;

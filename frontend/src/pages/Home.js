@@ -6,23 +6,17 @@ import {
   Text,
   useToast,
   Box,
+  Input,
   Button
 } from '@chakra-ui/react';
 import ProductCard from '../components/ProductCard';
-import { getProducts, searchProducts, addToCart as apiAddToCart } from '../services/api';
+import { getProducts } from '../services/api';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
   const toast = useToast();
-
-  const categories = [
-    "Electronics",
-    "Accessories",
-    "Gaming"
-  ];
 
   const loadProducts = useCallback(async () => {
     try {
@@ -61,52 +55,10 @@ const Home = () => {
     loadProducts();
   }, [loadProducts]);
 
-  const handleSearch = async (term) => {
-    setSearchTerm(term);
-    if (!term) {
-      loadProducts();
-      return;
-    }
-    try {
-      const results = await searchProducts(term);
-      setProducts(results);
-    } catch (error) {
-      console.error('Error searching products:', error);
-      toast({
-        title: 'Error',
-        description: 'Error al buscar productos',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+    // TODO: Implementar búsqueda de productos
   };
-
-  const handleAddToCart = async (productId) => {
-    try {
-      await apiAddToCart({ productId, quantity: 1 });
-      toast({
-        title: 'Éxito',
-        description: 'Producto agregado al carrito',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo agregar el producto al carrito',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const filteredProducts = products.filter(product =>
-    (!selectedCategory || product.category === selectedCategory)
-  );
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -119,76 +71,26 @@ const Home = () => {
         </Text>
       </Box>
 
-      {/* Categorías */}
-      <Box mb={8}>
-        <Heading as="h2" size="lg" mb={4}>
-          Categorías Populares
-        </Heading>
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-          {categories.map((category) => (
-            <Button
-              key={category}
-              size="lg"
-              variant={selectedCategory === category ? "solid" : "outline"}
-              onClick={() => setSelectedCategory(category === selectedCategory ? '' : category)}
-            >
-              {category}
-            </Button>
-          ))}
-        </SimpleGrid>
+      <Box mb={4}>
+        <Input
+          placeholder="Buscar productos..."
+          value={searchTerm}
+          onChange={handleSearch}
+          size="lg"
+        />
       </Box>
 
-      {/* Productos */}
-      <Box>
-        <Heading as="h2" size="lg" mb={4}>
-          Productos Destacados
-        </Heading>
-        {loading ? (
-          <Text>Cargando productos...</Text>
-        ) : (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={() => handleAddToCart(product.id)}
-              />
-            ))}
-          </SimpleGrid>
-        )}
-        {!loading && filteredProducts.length === 0 && (
-          <Text textAlign="center" fontSize="lg" color="gray.600">
-            No se encontraron productos en esta categoría
-          </Text>
-        )}
-      </Box>
-
-      {/* Categorías destacadas con imágenes */}
-      <Box mt={12}>
-        <Heading as="h2" size="lg" mb={6}>
-          Explora por Categoría
-        </Heading>
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8}>
-          {categories.map((category) => (
-            <Box
-              key={category}
-              borderRadius="lg"
-              overflow="hidden"
-              bg="gray.100"
-              p={6}
-              textAlign="center"
-              cursor="pointer"
-              onClick={() => setSelectedCategory(category)}
-              _hover={{ transform: 'scale(1.02)', transition: 'transform 0.2s' }}
-            >
-              <Heading size="md">{category}</Heading>
-              <Text mt={2} color="gray.600">
-                Explora {category}
-              </Text>
-            </Box>
+      {loading ? (
+        <Box textAlign="center" py={8}>
+          <Text fontSize="xl">Cargando productos...</Text>
+        </Box>
+      ) : (
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </SimpleGrid>
-      </Box>
+      )}
     </Container>
   );
 };
