@@ -10,7 +10,7 @@ import {
   Button
 } from '@chakra-ui/react';
 import ProductCard from '../components/ProductCard';
-import api from '../services/api';
+import { API_URL } from '../config';
 
 console.log('Home component initialized');
 
@@ -24,12 +24,16 @@ const Home = () => {
     try {
       setLoading(true);
       console.log('Iniciando carga de productos...');
-      console.log('API URL:', api.defaults.baseURL);
+      console.log('API URL:', API_URL);
 
-      const response = await api.get('/products/');
-      console.log('Respuesta de productos recibida:', response);
+      const response = await fetch(`${API_URL}/products/`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Respuesta de productos recibida:', data);
 
-      if (!response.data || response.data.length === 0) {
+      if (!data || data.length === 0) {
         console.log('No se encontraron productos');
         toast({
           title: 'Advertencia',
@@ -40,15 +44,14 @@ const Home = () => {
         });
         setProducts([]);
       } else {
-        console.log('Productos cargados exitosamente:', response.data);
-        setProducts(response.data);
+        console.log('Productos cargados exitosamente:', data);
+        setProducts(data);
       }
     } catch (error) {
       console.error('Error detallado al cargar productos:', {
         message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config
+        name: error.name,
+        stack: error.stack
       });
 
       toast({
