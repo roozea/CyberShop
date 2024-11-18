@@ -101,8 +101,7 @@ const Home = () => {
         setProducts([]);
         return true; // No más reintentos
       } finally {
-        console.log('Estado final de loading:', loading);
-        console.log('Estado final de products:', products);
+        setLoading(false);
       }
     };
 
@@ -111,10 +110,7 @@ const Home = () => {
     while (!success && retryCount <= maxRetries) {
       success = await attemptLoad();
     }
-
-    setLoading(false);
-    console.log('Carga de productos finalizada. Loading:', false);
-  }, [toast, loading, products]);
+  }, [toast]); // Solo depender del toast
 
   useEffect(() => {
     console.log('Efecto de carga de productos iniciado');
