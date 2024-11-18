@@ -1,30 +1,27 @@
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Heading,
   SimpleGrid,
-  Box,
-  Input,
-  Select,
-  Button,
-  Flex,
   Text,
-  Badge,
-  useToast
+  useToast,
+  Box,
+  Button
 } from '@chakra-ui/react';
-import { ProductCard } from '../components/ProductCard';
-import { useState, useEffect, useCallback } from 'react';
+import ProductCard from '../components/ProductCard';
 import { getProducts, searchProducts, addToCart as apiAddToCart } from '../services/api';
 
-export const Home = () => {
+const Home = () => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todas');
-  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const toast = useToast();
 
   const categories = [
-    'Todas', 'Laptops', 'Smartphones', 'Tablets', 'Wearables',
-    'Audio', 'Cámaras', 'Monitores', 'Consolas'
+    "Electronics",
+    "Accessories",
+    "Gaming"
   ];
 
   const loadProducts = useCallback(async () => {
@@ -58,17 +55,21 @@ export const Home = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // Removed toast dependency since it's stable
+  }, [toast]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
-  const handleSearch = async () => {
+  const handleSearch = async (term) => {
+    setSearchTerm(term);
+    if (!term) {
+      loadProducts();
+      return;
+    }
     try {
-      setLoading(true);
-      const data = await searchProducts(searchTerm);
-      setProducts(data);
+      const results = await searchProducts(term);
+      setProducts(results);
     } catch (error) {
       console.error('Error searching products:', error);
       toast({
@@ -78,19 +79,17 @@ export const Home = () => {
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleAddToCart = async (product) => {
+  const handleAddToCart = async (productId) => {
     try {
-      await apiAddToCart({ productId: product.id, quantity: 1 });
+      await apiAddToCart({ productId, quantity: 1 });
       toast({
-        title: 'Producto agregado',
-        description: `${product.name} ha sido agregado al carrito`,
+        title: 'Éxito',
+        description: 'Producto agregado al carrito',
         status: 'success',
-        duration: 3000,
+        duration: 2000,
         isClosable: true,
       });
     } catch (error) {
@@ -105,117 +104,93 @@ export const Home = () => {
     }
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'Todas' || product.category === selectedCategory;
-    return matchesCategory;
-  });
+  const filteredProducts = products.filter(product =>
+    (!selectedCategory || product.category === selectedCategory)
+  );
 
   return (
-    <Box>
-      {/* Banner Promocional */}
-      <Box
-        bgImage="url('https://images.unsplash.com/photo-1550745165-9bc0b252726f')"
-        bgPosition="center"
-        bgSize="cover"
-        h="300px"
-        position="relative"
-        mb={8}
-      >
-        <Box
-          position="absolute"
-          top="0"
-          left="0"
-          right="0"
-          bottom="0"
-          bg="rgba(0,0,0,0.6)"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          flexDirection="column"
-          color="white"
-          textAlign="center"
-          p={4}
-        >
-          <Heading size="2xl" mb={4}>Mega Ofertas CyberShop</Heading>
-          <Text fontSize="xl" maxW="container.md">
-            Descubre las mejores ofertas en tecnología. Hasta 50% de descuento en productos seleccionados.
-          </Text>
-          <Button colorScheme="blue" size="lg" mt={6}>
-            Ver Ofertas
-          </Button>
-        </Box>
+    <Container maxW="container.xl" py={8}>
+      <Box textAlign="center" mb={8}>
+        <Heading as="h1" size="2xl" mb={4}>
+          Bienvenido a CyberShop
+        </Heading>
+        <Text fontSize="xl" color="gray.600">
+          Descubre nuestros productos más destacados
+        </Text>
       </Box>
 
-      <Container maxW="container.xl" py={8}>
-        {/* Filtros y Búsqueda */}
-        <Flex mb={8} gap={4} flexWrap={{ base: 'wrap', md: 'nowrap' }}>
-          <Input
-            placeholder="Buscar productos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            flex={1}
-          />
-          <Button onClick={handleSearch} colorScheme="blue">
-            Buscar
-          </Button>
-          <Select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            width={{ base: '100%', md: '200px' }}
-          >
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </Select>
-        </Flex>
+      {/* Categorías */}
+      <Box mb={8}>
+        <Heading as="h2" size="lg" mb={4}>
+          Categorías Populares
+        </Heading>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+          {categories.map((category) => (
+            <Button
+              key={category}
+              size="lg"
+              variant={selectedCategory === category ? "solid" : "outline"}
+              onClick={() => setSelectedCategory(category === selectedCategory ? '' : category)}
+            >
+              {category}
+            </Button>
+          ))}
+        </SimpleGrid>
+      </Box>
 
-        {/* Productos */}
-        <Box mb={8}>
-          <Flex justify="space-between" align="center" mb={6}>
-            <Heading size="lg">Productos Destacados</Heading>
-            <Badge colorScheme="green" p={2} borderRadius="md">
-              {filteredProducts.length} productos encontrados
-            </Badge>
-          </Flex>
-
-          {loading ? (
-            <Text>Cargando productos...</Text>
-          ) : (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
-              {filteredProducts.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={() => handleAddToCart(product)}
-                />
-              ))}
-            </SimpleGrid>
-          )}
-        </Box>
-
-        {/* Categorías Destacadas */}
-        <Box>
-          <Heading size="lg" mb={6}>Categorías Populares</Heading>
-          <SimpleGrid columns={{ base: 2, md: 3, lg: 4 }} spacing={6}>
-            {categories.slice(1).map(category => (
-              <Box
-                key={category}
-                bg="gray.100"
-                p={4}
-                borderRadius="lg"
-                cursor="pointer"
-                _hover={{ bg: 'blue.50' }}
-                onClick={() => setSelectedCategory(category)}
-              >
-                <Text fontSize="lg" fontWeight="bold" textAlign="center">
-                  {category}
-                </Text>
-              </Box>
+      {/* Productos */}
+      <Box>
+        <Heading as="h2" size="lg" mb={4}>
+          Productos Destacados
+        </Heading>
+        {loading ? (
+          <Text>Cargando productos...</Text>
+        ) : (
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={() => handleAddToCart(product.id)}
+              />
             ))}
           </SimpleGrid>
-        </Box>
-      </Container>
-    </Box>
+        )}
+        {!loading && filteredProducts.length === 0 && (
+          <Text textAlign="center" fontSize="lg" color="gray.600">
+            No se encontraron productos en esta categoría
+          </Text>
+        )}
+      </Box>
+
+      {/* Categorías destacadas con imágenes */}
+      <Box mt={12}>
+        <Heading as="h2" size="lg" mb={6}>
+          Explora por Categoría
+        </Heading>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8}>
+          {categories.map((category) => (
+            <Box
+              key={category}
+              borderRadius="lg"
+              overflow="hidden"
+              bg="gray.100"
+              p={6}
+              textAlign="center"
+              cursor="pointer"
+              onClick={() => setSelectedCategory(category)}
+              _hover={{ transform: 'scale(1.02)', transition: 'transform 0.2s' }}
+            >
+              <Heading size="md">{category}</Heading>
+              <Text mt={2} color="gray.600">
+                Explora {category}
+              </Text>
+            </Box>
+          ))}
+        </SimpleGrid>
+      </Box>
+    </Container>
   );
 };
+
+export default Home;
