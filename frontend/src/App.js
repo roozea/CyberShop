@@ -2,7 +2,7 @@ import React from "react";
 import { ChakraProvider } from '@chakra-ui/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { Home } from './pages/Home';
+import Home from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Cart } from './pages/Cart';

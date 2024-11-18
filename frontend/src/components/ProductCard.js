@@ -148,3 +148,4 @@ export const ProductCard = ({ product, onAddToCart }) => {
     </Box>
   );
 };
+export default ProductCard;
