@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { ProductCard } from '../components/ProductCard';
 import { useState, useEffect, useCallback } from 'react';
-import api, { getProducts, searchProducts } from '../services/api';
+import { getProducts, searchProducts, addToCart as apiAddToCart } from '../services/api';
 
 export const Home = () => {
   const [products, setProducts] = useState([]);
@@ -83,7 +83,7 @@ export const Home = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      await api.post('/cart/add', { productId: product.id, quantity: 1 });
+      await apiAddToCart({ productId: product.id, quantity: 1 });
       toast({
         title: 'Producto agregado',
         description: `${product.name} ha sido agregado al carrito`,
