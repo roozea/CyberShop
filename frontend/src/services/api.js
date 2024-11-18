@@ -40,16 +40,4 @@ api.interceptors.response.use(
   }
 );
 
-export const getProducts = async () => {
-  try {
-    console.log('Fetching products from API...');
-    const response = await api.get("/products/");
-    console.log('Products fetched successfully:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    throw error;
-  }
-};
-
 export default api;
