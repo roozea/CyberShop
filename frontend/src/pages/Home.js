@@ -21,50 +21,93 @@ const Home = () => {
   const toast = useToast();
 
   const loadProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      console.log('Iniciando carga de productos...');
-      console.log('API URL:', API_URL);
+    let retryCount = 0;
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2 segundos
 
-      const response = await fetch(`${API_URL}/products/`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('Respuesta de productos recibida:', data);
+    const attemptLoad = async () => {
+      try {
+        setLoading(true);
+        console.log('Iniciando carga de productos... Intento:', retryCount + 1);
+        console.log('API URL:', API_URL);
 
-      if (!data || data.length === 0) {
-        console.log('No se encontraron productos');
+        const response = await fetch(`${API_URL}/products/`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'omit'
+        });
+
+        console.log('Respuesta recibida:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Respuesta de productos recibida:', data);
+
+        if (!Array.isArray(data)) {
+          throw new Error('La respuesta no es un array de productos');
+        }
+
+        if (data.length === 0) {
+          console.log('No se encontraron productos');
+          toast({
+            title: 'Advertencia',
+            description: 'No hay productos disponibles',
+            status: 'warning',
+            duration: 3000,
+            isClosable: true,
+          });
+          setProducts([]);
+        } else {
+          console.log('Productos cargados exitosamente:', data);
+          setProducts(data);
+        }
+        return true; // Éxito
+      } catch (error) {
+        console.error('Error detallado al cargar productos:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          url: `${API_URL}/products/`,
+          attempt: retryCount + 1
+        });
+
+        if (retryCount < maxRetries) {
+          console.log(`Reintentando en ${retryDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          retryCount++;
+          return false; // Falló, pero podemos reintentar
+        }
+
         toast({
-          title: 'Advertencia',
-          description: 'No hay productos disponibles',
-          status: 'warning',
-          duration: 3000,
+          title: 'Error',
+          description: 'No se pudieron cargar los productos. Por favor, intente nuevamente.',
+          status: 'error',
+          duration: 5000,
           isClosable: true,
         });
         setProducts([]);
-      } else {
-        console.log('Productos cargados exitosamente:', data);
-        setProducts(data);
+        return true; // No más reintentos
       }
-    } catch (error) {
-      console.error('Error detallado al cargar productos:', {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
-      });
+    };
 
-      toast({
-        title: 'Error',
-        description: 'No se pudieron cargar los productos. Por favor, intente nuevamente.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-      setProducts([]);
-    } finally {
-      setLoading(false);
+    // Intentar cargar hasta que tengamos éxito o agotemos los reintentos
+    let success = false;
+    while (!success && retryCount <= maxRetries) {
+      success = await attemptLoad();
     }
+
+    setLoading(false);
   }, [toast]);
 
   useEffect(() => {
