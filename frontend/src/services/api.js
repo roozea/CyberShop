@@ -1,9 +1,11 @@
 import axios from "axios";
 import { API_URL } from "../config";
 
+console.log('API_URL:', API_URL); // Debug log
+
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Cambiado a true para permitir el envío de cookies
+  withCredentials: false, // Cambiado a false para evitar problemas de CORS
   headers: {
     'Content-Type': 'application/json'
   }
