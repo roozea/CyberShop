@@ -6,8 +6,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+# Configurar variables de entorno para mejorar la estabilidad
+ENV NODE_OPTIONS=--max_old_space_size=2048
+ENV WATCHPACK_POLLING=true
+
 COPY . .
 
 # Vulnerable: Expone el puerto de desarrollo
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npm start || (sleep 5 && npm start)"]
