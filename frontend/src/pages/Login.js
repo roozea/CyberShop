@@ -22,20 +22,25 @@ export const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // Vulnerable: No validación de entrada
-    const response = await login(formData.email, formData.password);
-
-    if (response && response.access_token) {
-      // Vulnerable: Mensaje revela información
-      toast({
-        title: 'Inicio de sesión exitoso',
-        description: `Bienvenido ${response.user_data.email}`,
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
+    try {
+      // Vulnerable: No validación de entrada
+      const response = await login({
+        email: formData.email,
+        password: formData.password
       });
-      navigate('/');
-    } else {
+
+      if (response && response.access_token) {
+        // Vulnerable: Mensaje revela información
+        toast({
+          title: 'Inicio de sesión exitoso',
+          description: `Bienvenido ${response.user_data.email}`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        navigate('/');
+      }
+    } catch (error) {
       // Vulnerable: Mensaje de error detallado
       toast({
         title: 'Error de autenticación',
@@ -44,6 +49,7 @@ export const Login = () => {
         duration: 3000,
         isClosable: true,
       });
+      console.error('Error de login:', error);
     }
   };
 

@@ -25,38 +25,41 @@ export const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // Vulnerable: No validación de contraseña
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Error',
-        description: 'Las contraseñas no coinciden',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+    try {
+      // Vulnerable: No validación de contraseña
+      if (formData.password !== formData.confirmPassword) {
+        toast({
+          title: 'Error',
+          description: 'Las contraseñas no coinciden',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
 
-    // Vulnerable: Envío de datos sensibles sin encriptar
-    const userData = {
-      email: formData.email,
-      password: formData.password,
-      credit_card: formData.credit_card,
-      address: formData.address
-    };
+      // Vulnerable: Envío de datos sensibles sin encriptar
+      const userData = {
+        email: formData.email,
+        password: formData.password,
+        credit_card: formData.credit_card,
+        address: formData.address
+      };
 
-    const response = await register(userData);
+      const response = await register(userData);
 
-    if (response) {
-      toast({
-        title: 'Registro exitoso',
-        description: 'Tu cuenta ha sido creada',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      navigate('/login');
-    } else {
+      if (response) {
+        toast({
+          title: 'Registro exitoso',
+          description: 'Tu cuenta ha sido creada',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Error en el registro:', error);
       toast({
         title: 'Error en el registro',
         description: 'No se pudo crear la cuenta',
