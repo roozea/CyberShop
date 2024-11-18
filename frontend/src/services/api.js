@@ -3,7 +3,7 @@ import { API_URL } from "../config";
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: false, // Cambiado a false para evitar problemas con CORS
+  withCredentials: true, // Cambiado a true para permitir el envío de cookies
   headers: {
     'Content-Type': 'application/json'
   }
