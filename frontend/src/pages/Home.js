@@ -12,6 +12,8 @@ import {
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
 
+console.log('Home component initialized');
+
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,10 +23,14 @@ const Home = () => {
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('Fetching products...');
+      console.log('Iniciando carga de productos...');
+      console.log('API URL:', api.defaults.baseURL);
+
       const response = await api.get('/products/');
-      console.log('Products received:', response.data);
+      console.log('Respuesta de productos recibida:', response);
+
       if (!response.data || response.data.length === 0) {
+        console.log('No se encontraron productos');
         toast({
           title: 'Advertencia',
           description: 'No hay productos disponibles',
@@ -34,10 +40,17 @@ const Home = () => {
         });
         setProducts([]);
       } else {
+        console.log('Productos cargados exitosamente:', response.data);
         setProducts(response.data);
       }
     } catch (error) {
-      console.error('Error loading products:', error.message, error.response?.data);
+      console.error('Error detallado al cargar productos:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+
       toast({
         title: 'Error',
         description: 'No se pudieron cargar los productos. Por favor, intente nuevamente.',
@@ -52,6 +65,7 @@ const Home = () => {
   }, [toast]);
 
   useEffect(() => {
+    console.log('Efecto de carga de productos iniciado');
     loadProducts();
   }, [loadProducts]);
 
