@@ -30,7 +30,9 @@ export const Home = () => {
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('Fetching products...');
       const data = await getProducts();
+      console.log('Products received:', data);
       if (!data || data.length === 0) {
         toast({
           title: 'Advertencia',
@@ -44,7 +46,7 @@ export const Home = () => {
         setProducts(data);
       }
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('Error loading products:', error.message, error.response?.data);
       toast({
         title: 'Error',
         description: 'No se pudieron cargar los productos. Por favor, intente nuevamente.',
@@ -56,7 +58,7 @@ export const Home = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []); // Removed toast dependency since it's stable
 
   useEffect(() => {
     loadProducts();
