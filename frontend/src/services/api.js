@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_URL } from "../config";
 
-console.log('API_URL:', API_URL); // Debug log
+console.log('Initializing API with URL:', API_URL); // Debug log
 
 const api = axios.create({
   baseURL: API_URL,
@@ -11,18 +11,33 @@ const api = axios.create({
   }
 });
 
+// Request interceptor
 api.interceptors.request.use((config) => {
+  console.log('Making API request:', config.method?.toUpperCase(), config.url);
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  console.error('Request interceptor error:', error);
+  return Promise.reject(error);
 });
 
+// Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
-    console.error('API Error:', error);
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
     return Promise.reject(error);
   }
 );
@@ -52,10 +67,16 @@ export const register = async (userData) => {
 
 export const getProducts = async () => {
   try {
+    console.log('Fetching products from API...');
     const response = await api.get("/products/");
+    console.log('Products fetched successfully:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Get products error:', error);
+    console.error('Error fetching products:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw error;
   }
 };
