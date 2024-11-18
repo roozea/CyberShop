@@ -15,6 +15,7 @@ import { API_URL } from '../config';
 console.log('Home component initialized');
 
 const Home = () => {
+  console.log('Home component rendering');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,6 +72,7 @@ const Home = () => {
         } else {
           console.log('Productos cargados exitosamente:', data);
           setProducts(data);
+          console.log('Estado de productos actualizado:', data);
         }
         return true; // Éxito
       } catch (error) {
@@ -98,6 +100,9 @@ const Home = () => {
         });
         setProducts([]);
         return true; // No más reintentos
+      } finally {
+        console.log('Estado final de loading:', loading);
+        console.log('Estado final de products:', products);
       }
     };
 
@@ -108,17 +113,25 @@ const Home = () => {
     }
 
     setLoading(false);
-  }, [toast]);
+    console.log('Carga de productos finalizada. Loading:', false);
+  }, [toast, loading, products]);
 
   useEffect(() => {
     console.log('Efecto de carga de productos iniciado');
     loadProducts();
   }, [loadProducts]);
 
+  // Log cuando cambia el estado de productos
+  useEffect(() => {
+    console.log('Estado de productos actualizado:', products);
+  }, [products]);
+
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
     // TODO: Implementar búsqueda de productos
   };
+
+  console.log('Renderizando componente Home:', { loading, productsLength: products.length });
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -146,9 +159,15 @@ const Home = () => {
         </Box>
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {products && products.length > 0 ? (
+            products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <Box textAlign="center" py={8}>
+              <Text fontSize="xl">No hay productos disponibles</Text>
+            </Box>
+          )}
         </SimpleGrid>
       )}
     </Container>
