@@ -10,7 +10,7 @@ import {
   Button
 } from '@chakra-ui/react';
 import ProductCard from '../components/ProductCard';
-import { getProducts } from '../services/api';
+import api from '../services/api';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -22,9 +22,9 @@ const Home = () => {
     try {
       setLoading(true);
       console.log('Fetching products...');
-      const data = await getProducts();
-      console.log('Products received:', data);
-      if (!data || data.length === 0) {
+      const response = await api.get('/products/');
+      console.log('Products received:', response.data);
+      if (!response.data || response.data.length === 0) {
         toast({
           title: 'Advertencia',
           description: 'No hay productos disponibles',
@@ -34,7 +34,7 @@ const Home = () => {
         });
         setProducts([]);
       } else {
-        setProducts(data);
+        setProducts(response.data);
       }
     } catch (error) {
       console.error('Error loading products:', error.message, error.response?.data);
