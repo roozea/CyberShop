@@ -119,27 +119,63 @@ const Home = () => {
       <Box
         textAlign="center"
         mb={8}
-        bgGradient="linear(to-r, blue.400, purple.500)"
+        bgGradient="linear(to-r, teal.500, blue.500)"
         color="white"
-        py={12}
+        py={16}
         px={4}
-        borderRadius="lg"
-        boxShadow="xl"
+        borderRadius="xl"
+        boxShadow="2xl"
+        position="relative"
+        overflow="hidden"
+        _before={{
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          bgGradient: "linear(to-r, blackAlpha.300, blackAlpha.500)",
+          zIndex: 0,
+        }}
       >
-        <Heading as="h1" size="2xl" mb={4}>
-          Bienvenido a CyberShop
-        </Heading>
-        <Text fontSize="xl">
-          Descubre nuestros productos más destacados con las mejores ofertas
-        </Text>
+        <Box position="relative" zIndex={1}>
+          <Heading as="h1" size="2xl" mb={6} textShadow="2px 2px 4px rgba(0,0,0,0.3)">
+            Bienvenido a CyberShop
+          </Heading>
+          <Text fontSize="2xl" mb={8} textShadow="1px 1px 2px rgba(0,0,0,0.2)">
+            Descubre nuestros productos más destacados con las mejores ofertas
+          </Text>
+          <Button
+            size="lg"
+            colorScheme="white"
+            variant="outline"
+            _hover={{
+              transform: "translateY(-2px)",
+              boxShadow: "xl",
+            }}
+            transition="all 0.2s"
+          >
+            Ver Ofertas Especiales
+          </Button>
+        </Box>
       </Box>
 
       <Box
         mb={8}
         p={6}
         bg="white"
-        borderRadius="lg"
-        boxShadow="md"
+        borderRadius="xl"
+        boxShadow="xl"
+        position="relative"
+        _before={{
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "2px",
+          bgGradient: "linear(to-r, teal.500, blue.500)",
+        }}
       >
         <Input
           placeholder="Buscar productos..."
@@ -148,8 +184,8 @@ const Home = () => {
           size="lg"
           bg="white"
           _focus={{
-            borderColor: "blue.400",
-            boxShadow: "0 0 0 1px blue.400"
+            borderColor: "teal.400",
+            boxShadow: "0 0 0 1px teal.400",
           }}
         />
       </Box>
@@ -159,14 +195,14 @@ const Home = () => {
           textAlign="center"
           py={12}
           bg="white"
-          borderRadius="lg"
-          boxShadow="md"
+          borderRadius="xl"
+          boxShadow="xl"
         >
           <Text fontSize="xl" color="gray.600">Cargando productos...</Text>
         </Box>
       ) : (
         <SimpleGrid
-          columns={{ base: 1, md: 2, lg: 3 }}
+          columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
           spacing={8}
           px={4}
         >
@@ -179,8 +215,8 @@ const Home = () => {
               textAlign="center"
               py={12}
               bg="white"
-              borderRadius="lg"
-              boxShadow="md"
+              borderRadius="xl"
+              boxShadow="xl"
               gridColumn="1 / -1"
             >
               <Text fontSize="xl" color="gray.600">No hay productos disponibles</Text>

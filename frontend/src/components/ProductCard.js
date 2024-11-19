@@ -31,7 +31,7 @@ const ProductCard = ({ product }) => {
     <Box
       maxW="sm"
       borderWidth="1px"
-      borderRadius="lg"
+      borderRadius="xl"
       overflow="hidden"
       bg={bgColor}
       _hover={{
@@ -40,17 +40,21 @@ const ProductCard = ({ product }) => {
         transition: 'all 0.3s ease-in-out'
       }}
       position="relative"
+      role="group"
     >
       {/* Badge de Oferta */}
       <Badge
         position="absolute"
         top="4"
         right="4"
-        px="2"
+        px="3"
         py="1"
         colorScheme="red"
-        borderRadius="md"
+        borderRadius="full"
         zIndex="1"
+        fontSize="sm"
+        fontWeight="bold"
+        textTransform="uppercase"
       >
         ¡Oferta!
       </Badge>
@@ -63,7 +67,7 @@ const ProductCard = ({ product }) => {
           width="100%"
           objectFit="cover"
           transition="transform 0.3s ease-in-out"
-          _hover={{ transform: 'scale(1.05)' }}
+          _groupHover={{ transform: 'scale(1.05)' }}
         />
 
         {/* Overlay con acciones rápidas */}
@@ -75,52 +79,61 @@ const ProductCard = ({ product }) => {
           bottom="0"
           bg="blackAlpha.600"
           opacity="0"
-          transition="opacity 0.3s"
+          transition="all 0.3s"
           _groupHover={{ opacity: 1 }}
           justify="center"
           align="center"
+          gap={4}
         >
           <IconButton
             aria-label="Agregar a favoritos"
             icon={<FaHeart />}
             colorScheme="red"
             variant="solid"
-            size="md"
-            m="1"
+            size="lg"
+            _hover={{ transform: 'scale(1.1)' }}
+          />
+          <IconButton
+            aria-label="Agregar al carrito"
+            icon={<FaShoppingCart />}
+            colorScheme="blue"
+            variant="solid"
+            size="lg"
+            _hover={{ transform: 'scale(1.1)' }}
           />
         </Flex>
       </Box>
 
       <Box p="6">
-        <Box display="flex" alignItems="baseline" mb={2}>
-          <Badge borderRadius="full" px="2" colorScheme="blue">
+        <Box display="flex" alignItems="baseline" mb={3}>
+          <Badge borderRadius="full" px="3" colorScheme="teal" textTransform="uppercase">
             {product.category}
           </Badge>
-          <Flex align="center" ml="2">
+          <Flex align="center" ml="3">
             <FaStar color="gold" />
-            <Text ml="1" fontSize="sm" color="gray.600">
+            <Text ml="1" fontSize="sm" fontWeight="bold" color="gray.600">
               4.5
             </Text>
           </Flex>
         </Box>
 
-        <Flex justify="space-between" align="baseline" mb={2}>
+        <Flex justify="space-between" align="baseline" mb={3}>
           <Tooltip label={product.name} placement="top">
             <Text
-              fontWeight="semibold"
+              fontWeight="bold"
               fontSize="xl"
               color={textColor}
               noOfLines={2}
               cursor="pointer"
+              _hover={{ color: 'blue.500' }}
             >
               {product.name}
             </Text>
           </Tooltip>
         </Flex>
 
-        {/* Vulnerable: XSS a través de la descripción (mantenemos la vulnerabilidad intencionalmente) */}
         <Box
-          fontSize="sm"
+          fontSize="md"
           color="gray.600"
           mb={4}
           noOfLines={2}
@@ -128,25 +141,30 @@ const ProductCard = ({ product }) => {
         />
 
         <Flex justify="space-between" align="center" mb={4}>
-          <Stack spacing={0}>
-            <Text fontSize="2xl" fontWeight="bold" color={textColor}>
+          <Stack spacing={1}>
+            <Text fontSize="2xl" fontWeight="bold" color="blue.600">
               ${product.price?.toFixed(2)}
             </Text>
             <Text fontSize="sm" color="gray.500" textDecoration="line-through">
               ${(product.price * 1.2).toFixed(2)}
             </Text>
           </Stack>
+          <Badge colorScheme="green" fontSize="sm" p={1}>
+            20% OFF
+          </Badge>
         </Flex>
 
-        <Flex justify="space-between" align="center">
-          <Link to={`/product/${product.id}`} style={{ flex: 1, marginRight: 2 }}>
+        <Flex justify="space-between" align="center" gap={2}>
+          <Link to={`/product/${product.id}`} style={{ flex: 1 }}>
             <Button
               variant="outline"
               colorScheme="blue"
               width="100%"
               _hover={{
-                bg: 'blue.50'
+                bg: 'blue.50',
+                transform: 'translateY(-2px)',
               }}
+              transition="all 0.2s"
             >
               Ver detalles
             </Button>
@@ -155,11 +173,10 @@ const ProductCard = ({ product }) => {
             colorScheme="blue"
             leftIcon={<FaShoppingCart />}
             flex={1}
-            ml={2}
             _hover={{
-              transform: 'scale(1.05)',
-              transition: 'transform 0.2s'
+              transform: 'translateY(-2px)',
             }}
+            transition="all 0.2s"
           >
             Agregar
           </Button>
