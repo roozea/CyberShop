@@ -10,7 +10,7 @@ import {
   Button
 } from '@chakra-ui/react';
 import ProductCard from '../components/ProductCard';
-import { API_URL } from '../config';
+import api from '../services/api';
 
 console.log('Home component initialized');
 
@@ -30,36 +30,15 @@ const Home = () => {
       try {
         setLoading(true);
         console.log('Iniciando carga de productos... Intento:', retryCount + 1);
-        console.log('API URL:', API_URL);
 
-        const response = await fetch(`${API_URL}/products/`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
-          },
-          credentials: 'omit'
-        });
+        const response = await api.get('/products/');
+        console.log('Respuesta de productos recibida:', response.data);
 
-        console.log('Respuesta recibida:', {
-          status: response.status,
-          statusText: response.statusText,
-          headers: Object.fromEntries(response.headers.entries())
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Respuesta de productos recibida:', data);
-
-        if (!Array.isArray(data)) {
+        if (!Array.isArray(response.data)) {
           throw new Error('La respuesta no es un array de productos');
         }
 
-        if (data.length === 0) {
+        if (response.data.length === 0) {
           console.log('No se encontraron productos');
           toast({
             title: 'Advertencia',
@@ -70,9 +49,15 @@ const Home = () => {
           });
           setProducts([]);
         } else {
-          console.log('Productos cargados exitosamente:', data);
-          setProducts(data);
-          console.log('Estado de productos actualizado:', data);
+          console.log('Productos cargados exitosamente:', response.data);
+          setProducts(response.data);
+          toast({
+            title: 'Éxito',
+            description: `${response.data.length} productos cargados`,
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
         }
         return true; // Éxito
       } catch (error) {
@@ -80,7 +65,6 @@ const Home = () => {
           message: error.message,
           name: error.name,
           stack: error.stack,
-          url: `${API_URL}/products/`,
           attempt: retryCount + 1
         });
 
@@ -111,7 +95,7 @@ const Home = () => {
     while (!success && retryCount <= maxRetries) {
       success = await attemptLoad();
     }
-  }, [toast]); // Solo depender del toast para evitar bucles infinitos
+  }, [toast]);
 
   useEffect(() => {
     console.log('Efecto de carga de productos iniciado');
