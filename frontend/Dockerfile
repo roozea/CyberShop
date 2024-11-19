@@ -12,7 +12,7 @@ RUN npm install
 
 # Configurar variables de entorno para construcción
 ENV NODE_ENV=production
-ENV REACT_APP_API_URL=http://localhost:8000
+ENV REACT_APP_API_URL=http://backend:8000
 ENV CI=false
 
 # Copiar el resto de los archivos y construir
