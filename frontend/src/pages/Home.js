@@ -132,37 +132,74 @@ const Home = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <Box textAlign="center" mb={8}>
+      <Box
+        textAlign="center"
+        mb={8}
+        bgGradient="linear(to-r, blue.400, purple.500)"
+        color="white"
+        py={12}
+        px={4}
+        borderRadius="lg"
+        boxShadow="xl"
+      >
         <Heading as="h1" size="2xl" mb={4}>
           Bienvenido a CyberShop
         </Heading>
-        <Text fontSize="xl" color="gray.600">
-          Descubre nuestros productos más destacados
+        <Text fontSize="xl">
+          Descubre nuestros productos más destacados con las mejores ofertas
         </Text>
       </Box>
 
-      <Box mb={4}>
+      <Box
+        mb={8}
+        p={6}
+        bg="white"
+        borderRadius="lg"
+        boxShadow="md"
+      >
         <Input
           placeholder="Buscar productos..."
           value={searchTerm}
           onChange={handleSearch}
           size="lg"
+          bg="white"
+          _focus={{
+            borderColor: "blue.400",
+            boxShadow: "0 0 0 1px blue.400"
+          }}
         />
       </Box>
 
       {loading ? (
-        <Box textAlign="center" py={8}>
-          <Text fontSize="xl">Cargando productos...</Text>
+        <Box
+          textAlign="center"
+          py={12}
+          bg="white"
+          borderRadius="lg"
+          boxShadow="md"
+        >
+          <Text fontSize="xl" color="gray.600">Cargando productos...</Text>
         </Box>
       ) : (
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+        <SimpleGrid
+          columns={{ base: 1, md: 2, lg: 3 }}
+          spacing={8}
+          px={4}
+        >
           {products && products.length > 0 ? (
             products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))
           ) : (
-            <Box textAlign="center" py={8}>
-              <Text fontSize="xl">No hay productos disponibles</Text>
+            <Box
+              textAlign="center"
+              py={12}
+              bg="white"
+              borderRadius="lg"
+              boxShadow="md"
+              gridColumn="1 / -1"
+            >
+              <Text fontSize="xl" color="gray.600">No hay productos disponibles</Text>
             </Box>
           )}
         </SimpleGrid>
