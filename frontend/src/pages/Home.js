@@ -102,6 +102,7 @@ const Home = () => {
         return true; // No más reintentos
       } finally {
         setLoading(false);
+        console.log('Carga finalizada');
       }
     };
 
@@ -110,7 +111,7 @@ const Home = () => {
     while (!success && retryCount <= maxRetries) {
       success = await attemptLoad();
     }
-  }, [toast]); // Solo depender del toast
+  }, [toast]); // Solo depender del toast para evitar bucles infinitos
 
   useEffect(() => {
     console.log('Efecto de carga de productos iniciado');
